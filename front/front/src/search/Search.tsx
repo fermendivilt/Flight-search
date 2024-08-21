@@ -39,6 +39,8 @@ export default function Search() {
     options: top100Films.map((option) => option.title),
   };
   const [value, setValue] = React.useState<FilmOptionType | null>(null);
+export default function Search(props: SearchProps) {
+  const { moveToResults } = props;
   const [search, setSearch] = useState<SearchDTO>({
     departureAirport: "",
     arrivalAirport: "",

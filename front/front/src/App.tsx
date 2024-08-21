@@ -1,25 +1,31 @@
-import React from "react";
-import logo from "./logo.svg";
+import { useState } from "react";
 import "./App.css";
 import {
   Container,
   Paper,
   Typography,
 } from "@mui/material";
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
 import Search from "./search/Search";
+import SearchResults from "./searchResults/SearchResults";
 
+type Page = "search" | "results" | "details";
 
 function App() {
 
+  const [page, setPage] = useState<Page>("search")
+
   return (
     <Container fixed sx={{ paddingY: 16 }}>
-      <Typography variant="h3" gutterBottom align="center">
-        Flight Search
-      </Typography>
+      {page === "search" && 
+        <Typography variant="h3" gutterBottom align="center">
+          Flight Search
+        </Typography>
+      }
 
       <Paper elevation={24} sx={{ padding: 16 }}>
-        <Search />
+      {page === "search" && <Search moveToResults={() => setPage("results")}/>}
+      {page === "results" && <SearchResults />}
+      {page === "details" && <p>Details</p>}
       </Paper>
     </Container>
   );
