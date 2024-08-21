@@ -8,73 +8,133 @@ import {
   Typography,
 } from "@mui/material";
 import Grid2 from "@mui/material/Unstable_Grid2";
-import React, { ChangeEvent, useState } from "react";
+import { ChangeEvent, FormEvent, useState } from "react";
 import { TodayDate } from "../utils/StringToDate";
+import { Currencies, SearchDTO, SearchDTOValidation, ValidateSearchDTO } from "../dto/SearchDTO";
 
-interface FilmOptionType {
-  title: string;
-  year: number;
+interface SearchProps {
+  moveToResults: () => void;
 }
-interface SearchDTO {
-  departureAirport: string;
-  arrivalAirport: string;
-  departureDate: string;
-  arrivalDate: string;
-  currency: "USD" | "MXN";
-  nonStop: boolean;
+
+interface Select {
+  name: string;
+  code: string;
 }
-const top100Films = [
-  { title: "The Shawshank Redemption", year: 1994 },
-  { title: "The Godfather", year: 1972 },
-  { title: "The Godfather: Part II", year: 1974 },
-  { title: "The Dark Knight", year: 2008 },
+
+const airportDB: Array<Select> = [
+  { name: "Aeropuerto internacional de Guadalajara", code: "GDL" },
+  { name: "Aeropuerto de Cajeme", code: "CJM" },
+  { name: "Aeropuerto internacional de Monterrey", code: "MTY" },
 ];
 
-export default function Search() {
-  const defaultProps = {
-    options: top100Films,
-    getOptionLabel: (option: FilmOptionType) => option.title,
-  };
-  const flatProps = {
-    options: top100Films.map((option) => option.title),
-  };
-  const [value, setValue] = React.useState<FilmOptionType | null>(null);
+const currencyList: Array<Select> = [
+  { name: "United States Dollar", code: Currencies[0] },
+  { name: "Mexican Peso", code: Currencies[1] },
+  { name: "Euro", code: Currencies[2] },
+];
+
+const airports = {
+  options: airportDB,
+  getOptionLabel: (option: Select) => option.name,
+};
+
+const currencies = {
+  options: currencyList,
+  getOptionLabel: (option: Select) => option.name,
+};
+
 export default function Search(props: SearchProps) {
   const { moveToResults } = props;
+
   const [search, setSearch] = useState<SearchDTO>({
     departureAirport: "",
     arrivalAirport: "",
     departureDate: TodayDate(),
     arrivalDate: TodayDate(),
-    currency: "USD",
+    currency: "",
     nonStop: false,
   });
 
-  const handleDateChange = (
-    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    isDeparture: boolean
+  const [validation, setValidation] = useState<SearchDTOValidation>({
+    hasError: false,
+    departureAirportError: "",
+    arrivalAirportError: "",
+    departureDateError: "",
+    arrivalDateError: "",
+    currencyError: ""
+  })
+
+  function validate(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    const result = ValidateSearchDTO(search);
+
+    setValidation(result);
+
+    if(!result.hasError) moveToResults();
+  }
+
+  const handleDepartureAirportChange = (value: Select | null) => {
+    if (value == null) return;
+
+    setSearch((prev) => {
+      return {
+        ...prev,
+        departureAirport: value.name,
+      };
+    });
+  };
+  const handleArrivalAirportChange = (value: Select | null) => {
+    if (value == null) return;
+
+    setSearch((prev) => {
+      return {
+        ...prev,
+        arrivalAirport: value.name,
+      };
+    });
+  };
+  const handleDepartureDateChange = (
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    if (isDeparture) {
-      setSearch((prev) => {
-        return {
-          ...prev,
-          departureDate: event.target.value,
-        };
-      });
-      console.log("value: " + event.target.value + "\nobject value: " + search.departureDate);
-    } else {
-      setSearch((prev) => {
-        return {
-          ...prev,
-          arrivalDate: event.target.value,
-        };
-      });
-      console.log("value: " + event.target.value + "\nobject value: " + search.arrivalDate);
-    }
+    setSearch((prev) => {
+      return {
+        ...prev,
+        departureDate: event.target.value,
+      };
+    });
+  };
+  const handleArrivalDateChange = (
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setSearch((prev) => {
+      return {
+        ...prev,
+        arrivalDate: event.target.value,
+      };
+    });
+  };
+  const handleCurrencyChange = (value: Select | null) => {
+    if (value == null) return;
+
+    setSearch((prev) => {
+      return {
+        ...prev,
+        currency: value.name,
+      };
+    });
+  };
+  const handleNonStopChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setSearch((prev) => {
+      return {
+        ...prev,
+        nonStop: event.target.checked,
+      };
+    });
   };
 
   return (
-    <>
+    <form id="searchForm" onSubmit={validate}>
       <Grid2 container gap={4}>
         <Grid2 xs={5}>
           <Typography variant="h5" align="right">
@@ -84,7 +144,7 @@ export default function Search(props: SearchProps) {
 
         <Grid2 xs={6}>
           <Autocomplete
-            {...defaultProps}
+            {...airports}
             id="DepartureAirport"
             selectOnFocus
             blurOnSelect
@@ -93,7 +153,13 @@ export default function Search(props: SearchProps) {
             renderInput={(params) => (
               <TextField {...params} label="Search" variant="outlined" />
             )}
+            onChange={(_e, value, _r, _d) =>
+              handleDepartureAirportChange(value)
+            }
           />
+          <Typography variant="caption" className="error">
+            {validation.departureAirportError}
+          </Typography>
         </Grid2>
 
         <Grid2 xs={5}>
@@ -104,7 +170,7 @@ export default function Search(props: SearchProps) {
 
         <Grid2 xs={6}>
           <Autocomplete
-            {...defaultProps}
+            {...airports}
             id="ArrivalAirport"
             selectOnFocus
             blurOnSelect
@@ -113,7 +179,11 @@ export default function Search(props: SearchProps) {
             renderInput={(params) => (
               <TextField {...params} label="Search" variant="outlined" />
             )}
+            onChange={(_e, value, _r, _d) => handleArrivalAirportChange(value)}
           />
+          <Typography variant="caption" className="error">
+            {validation.arrivalAirportError}
+          </Typography>
         </Grid2>
 
         <Grid2 xs={5}>
@@ -125,11 +195,14 @@ export default function Search(props: SearchProps) {
         <Grid2 xs={6}>
           <Input
             type="date"
+            fullWidth
             id="DepartureDate"
             value={search.departureDate}
-            onChange={(e) => handleDateChange(e, true)}
+            onChange={handleDepartureDateChange}
           />
-          <p>{search.departureDate}</p>
+          <Typography variant="caption" className="error">
+            {validation.departureDateError}
+          </Typography>
         </Grid2>
 
         <Grid2 xs={5}>
@@ -141,11 +214,14 @@ export default function Search(props: SearchProps) {
         <Grid2 xs={6}>
           <Input
             type="date"
+            fullWidth
             id="ArrivalDate"
             value={search.arrivalDate}
-            onChange={(e) => handleDateChange(e, false)}
+            onChange={handleArrivalDateChange}
           />
-          <p>{search.arrivalDate}</p>
+          <Typography variant="caption" className="error">
+            {validation.arrivalDateError}
+          </Typography>
         </Grid2>
 
         <Grid2 xs={5}>
@@ -156,7 +232,7 @@ export default function Search(props: SearchProps) {
 
         <Grid2 xs={6}>
           <Autocomplete
-            {...defaultProps}
+            {...currencies}
             id="Currency"
             selectOnFocus
             blurOnSelect
@@ -165,18 +241,26 @@ export default function Search(props: SearchProps) {
             renderInput={(params) => (
               <TextField {...params} label="Search" variant="outlined" />
             )}
+            onChange={(_e, value, _r, _d) => handleCurrencyChange(value)}
           />
+          <Typography variant="caption" className="error">
+            {validation.currencyError}
+          </Typography>
         </Grid2>
 
         <Grid2 xs={5}></Grid2>
 
         <Grid2 xs={6}>
-          <Checkbox sx={{ paddingLeft: 0 }} /> Non-stop
+          <Checkbox onChange={handleNonStopChange} sx={{ paddingLeft: 0 }} />{" "}
+          Non-stop
         </Grid2>
       </Grid2>
+
       <Box display="flex" justifyContent="end">
-        <Button variant="contained">Search</Button>
+        <Button type="submit" form="searchForm" variant="contained">
+          Search
+        </Button>
       </Box>
-    </>
+    </form>
   );
 }
