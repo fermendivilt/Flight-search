@@ -1,3 +1,5 @@
+import { TodayDate } from "../utils/StringToDate";
+
 type SearchDTO = {
   departureAirport: string;
   arrivalAirport: string;
@@ -51,7 +53,7 @@ const validateDepartureDate = (dto: SearchDTO): string => {
   if (required.length > 0) return required;
 
   const date = new Date(dto.departureDate);
-  const present = new Date(Date.now());
+  const present = new Date(TodayDate());
   if (
     date.getFullYear() < present.getFullYear() ||
     date.getMonth() < present.getMonth() ||
