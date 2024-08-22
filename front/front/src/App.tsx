@@ -15,7 +15,7 @@ function App() {
   const [page, setPage] = useState<Page>("search")
 
   return (
-    <Container fixed sx={{ paddingY: 16 }}>
+    <Container fixed sx={{ paddingTop: 4 }}>
       {page === "search" && 
         <Typography variant="h3" gutterBottom align="center">
           Flight Search
