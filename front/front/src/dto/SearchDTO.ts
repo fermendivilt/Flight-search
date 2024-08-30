@@ -69,12 +69,8 @@ const validateDepartureDate = (dto: SearchDTO): string => {
 
   const date = new Date(dto.departureDate);
   const present = new Date(TodayDate());
-  if (
-    date.getFullYear() < present.getFullYear() ||
-    date.getMonth() < present.getMonth() ||
-    date.getDay() < present.getDay()
-  )
-    return "Date cannot be in the past";
+  
+  if (date < present) return "Date cannot be in the past";
 
   return "";
 };
