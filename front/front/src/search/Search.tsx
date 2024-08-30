@@ -9,10 +9,11 @@ import {
 } from "@mui/material";
 import Grid2 from "@mui/material/Unstable_Grid2";
 import { ChangeEvent, FormEvent, useState } from "react";
-import { TodayDate } from "../utils/StringToDate";
 import { Currencies, SearchDTO, SearchDTOValidation, ValidateSearchDTO } from "../dto/SearchDTO";
 
 interface SearchProps {
+  search: SearchDTO;
+  setSearch: React.Dispatch<React.SetStateAction<SearchDTO>>;
   moveToResults: () => void;
 }
 
@@ -43,27 +44,17 @@ const currencies = {
   getOptionLabel: (option: Select) => option.name,
 };
 
-export default function Search(props: SearchProps) {
-  const { moveToResults } = props;
-
-  const [search, setSearch] = useState<SearchDTO>({
-    departureAirport: "",
-    arrivalAirport: "",
-    departureDate: TodayDate(),
-    arrivalDate: TodayDate(),
-    currency: "",
-    nonStop: false,
-  });
-
+export default function Search({ search, setSearch, moveToResults }: SearchProps) {
+  
   const [validation, setValidation] = useState<SearchDTOValidation>({
     hasError: false,
     departureAirportError: "",
     arrivalAirportError: "",
     departureDateError: "",
     arrivalDateError: "",
+    adultsError: "",
     currencyError: ""
   })
-
   function validate(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
@@ -71,8 +62,16 @@ export default function Search(props: SearchProps) {
 
     setValidation(result);
 
-    if(!result.hasError) moveToResults();
+    if(!result.hasError) {
+      
+      const url: URL = new URL(window.location.href);
+      Object.entries(search).forEach(pair => url.searchParams.set(pair[0], pair[1].toString()));
+      window.history.pushState({}, '', url);
+
+      moveToResults();
+    }
   }
+
 
   const handleDepartureAirportChange = (value: Select | null) => {
     if (value == null) return;
@@ -80,7 +79,7 @@ export default function Search(props: SearchProps) {
     setSearch((prev) => {
       return {
         ...prev,
-        departureAirport: value.name,
+        departureAirport: value.code,
       };
     });
   };
@@ -90,7 +89,7 @@ export default function Search(props: SearchProps) {
     setSearch((prev) => {
       return {
         ...prev,
-        arrivalAirport: value.name,
+        arrivalAirport: value.code,
       };
     });
   };
@@ -114,13 +113,26 @@ export default function Search(props: SearchProps) {
       };
     });
   };
+  const handleAdultsChange = (
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    let value: number = Number.parseInt(event.target.value);
+
+
+    setSearch((prev) => {
+      return {
+        ...prev,
+        adults: value
+      };
+    });
+  };
   const handleCurrencyChange = (value: Select | null) => {
     if (value == null) return;
 
     setSearch((prev) => {
       return {
         ...prev,
-        currency: value.name,
+        currency: value.code,
       };
     });
   };
@@ -136,6 +148,12 @@ export default function Search(props: SearchProps) {
   return (
     <form id="searchForm" onSubmit={validate}>
       <Grid2 container gap={4}>
+        <Grid2 xs={12}>
+          <Typography variant="h3" gutterBottom align="center">
+            Flight Search
+          </Typography>
+        </Grid2>
+
         <Grid2 xs={5}>
           <Typography variant="h5" align="right">
             <label htmlFor="DepartureAirport">Departure airport</label>
@@ -221,6 +239,25 @@ export default function Search(props: SearchProps) {
           />
           <Typography variant="caption" className="error">
             {validation.arrivalDateError}
+          </Typography>
+        </Grid2>
+
+        <Grid2 xs={5}>
+          <Typography variant="h5" align="right">
+            <label htmlFor="adults">Number of adults</label>
+          </Typography>
+        </Grid2>
+
+        <Grid2 xs={6}>
+          <Input
+            type="number"
+            fullWidth
+            id="adults"
+            value={search.adults}
+            onChange={handleAdultsChange}
+          />
+          <Typography variant="caption" className="error">
+            {validation.adultsError}
           </Typography>
         </Grid2>
 
