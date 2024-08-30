@@ -5,6 +5,7 @@ type SearchDTO = {
   arrivalAirport: string;
   departureDate: string;
   arrivalDate: string;
+  adults: number;
   currency: string;
   nonStop: boolean;
 };
@@ -15,6 +16,7 @@ type SearchDTOValidation = {
   arrivalAirportError: string;
   departureDateError: string;
   arrivalDateError: string;
+  adultsError: string;
   currencyError: string;
 };
 
@@ -24,6 +26,7 @@ const ValidateSearchDTO = (dto: SearchDTO): SearchDTOValidation => {
     arrivalAirportError: validateArrivalAirport(dto),
     departureDateError: validateDepartureDate(dto),
     arrivalDateError: validateArrivalDate(dto),
+    adultsError: validateAdults(dto),
     currencyError: validateCurrency(dto),
   };
 
@@ -78,13 +81,23 @@ const validateArrivalDate = (dto: SearchDTO): string => {
 
   return "";
 };
+const validateAdults = (dto: SearchDTO): string => {
+  const required = requiredValidation(dto.adults.toString());
+  if (required.length > 0) return required;
+
+  if (Number.isNaN(dto.adults)) return "Must be a number";
+
+  if (dto.adults < 1) return "Must be a valid number";
+
+  return "";
+};
 const validateCurrency = (dto: SearchDTO): string => {
   if (!Currencies.includes(dto.currency)) return "Not a valid currency";
 
   return "";
 };
 const requiredValidation = (value: string): string => {
-  if (!value.toString().trim().length) return "Required";
+  if (!value.trim().length) return "Required";
 
   return "";
 };
