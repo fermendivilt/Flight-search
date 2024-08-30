@@ -10,6 +10,18 @@ type SearchDTO = {
   nonStop: boolean;
 };
 
+const EmptySearchDTO = (): SearchDTO => {
+  return {
+    departureAirport: "",
+    arrivalAirport: "",
+    departureDate: TodayDate(),
+    arrivalDate: TodayDate(),
+    adults: 1,
+    currency: "",
+    nonStop: false,
+  };
+};
+
 type SearchDTOValidation = {
   hasError: boolean;
   departureAirportError: string;
@@ -104,5 +116,5 @@ const requiredValidation = (value: string): string => {
 
 const Currencies = ["USD", "MXN", "EUR"];
 
-export type { SearchDTO, SearchDTOValidation }
-export { ValidateSearchDTO, Currencies }
+export type { SearchDTO, SearchDTOValidation };
+export { EmptySearchDTO, ValidateSearchDTO, Currencies };
