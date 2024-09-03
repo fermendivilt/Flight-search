@@ -13,6 +13,7 @@ public class SearchDTO {
     private String arrivalAirport;
     private LocalDate departureDate;
     private LocalDate arrivalDate;
+    private Integer adults;
     private Currency currency;
     private Boolean nonStop;
 }

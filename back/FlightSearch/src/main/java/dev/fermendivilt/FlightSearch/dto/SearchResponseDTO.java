@@ -1,6 +1,9 @@
 package dev.fermendivilt.FlightSearch.dto;
 
+import dev.fermendivilt.FlightSearch.dto.amadeus.FlightSearchResponseDTO;
+
 public class SearchResponseDTO {
-    public SearchResponseDTO(AmadeusFlightSearchResponseDTO amadeusFlightSearchResponseDTO) {
+
+    public SearchResponseDTO(FlightSearchResponseDTO airportSearchResponseDTO) {
     }
 }
