@@ -7,5 +7,6 @@ import lombok.Data;
 @AllArgsConstructor
 public class AirportSearchResponseDTO {
     private String name;
+    private String country;
     private String iataCode;
 }

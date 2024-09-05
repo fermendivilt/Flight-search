@@ -57,7 +57,7 @@ public class AmadeusAPI {
         expiration = LocalDateTime.now().plusSeconds(result.get("expires_in").getAsLong());
     }
 
-    public List<AirportSearchResponseDTO> getAirports(String keyword) throws IOException, InterruptedException, SyncFailedException {
+    public List<AirportSearchResponseDTO> getAirports(String keyword) throws IOException, InterruptedException {
         List<AirportSearchResponseDTO> result = new ArrayList<>();
 
         int elementLimit = 5;
@@ -65,17 +65,23 @@ public class AmadeusAPI {
         URI url = UriComponentsBuilder.fromHttpUrl(apiUrl + "v1/reference-data/locations")
             .queryParam("subType","AIRPORT")
             .queryParam("keyword", keyword)
-            .queryParam("page[limit]", elementLimit) // %5Blimit%5D
+            .queryParam("page[limit]", elementLimit)
             .queryParam("view", "LIGHT")
             .build().toUri();
 
-        JsonObject response = makeRequest(url);
+        JsonObject response;
+        try {
+            response = makeRequest(url);
+        } catch(SyncFailedException _) {
+            response = makeRequest(URI.create("https://21cddc1f-4b79-4af6-b653-f13e26c28830.mock.pstmn.io"), true);
+        }
 
         response.getAsJsonArray("data").forEach(jsonElement -> {
                 JsonObject element = jsonElement.getAsJsonObject();
                 result.add(
                     new AirportSearchResponseDTO(
                         element.get("name").getAsString(),
+                        element.getAsJsonObject("address").get("countryName").getAsString(),
                         element.get("iataCode").getAsString()));
             });
 
@@ -97,7 +103,13 @@ public class AmadeusAPI {
             .queryParam("max", elementLimit)
             .build().toUri();
 
-        JsonObject responseBody = makeRequest(url);
+        JsonObject responseBody;
+        try {
+            responseBody = makeRequest(url);
+        } catch(SyncFailedException _) {
+
+            responseBody = makeRequest(URI.create("https://47e25352-8d0c-49c9-9f0c-bbfe4414cf6f.mock.pstmn.io/flight-offers/roundTrip"), true);
+        }
 
         Gson gson = new GsonBuilder().create();
 
@@ -116,7 +128,22 @@ public class AmadeusAPI {
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         JsonObject result = JsonParser.parseString(response.body()).getAsJsonObject();
 
-        if(result.get("error") != null)
+        if(result.get("errors") != null)
+            throw new SyncFailedException("Invalid external error, please contact administrator.");
+
+        return result;
+    }
+    
+    private JsonObject makeRequest(URI uri, boolean noAuth) throws IOException, InterruptedException, SyncFailedException {
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(uri)
+            .header("Authorization", tokenType + " " + accessToken)
+            .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        JsonObject result = JsonParser.parseString(response.body()).getAsJsonObject();
+
+        if(result.get("errors") != null)
             throw new SyncFailedException("Invalid external error, please contact administrator.");
 
         return result;
