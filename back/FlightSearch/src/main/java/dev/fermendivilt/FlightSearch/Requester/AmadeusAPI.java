@@ -90,22 +90,22 @@ public class AmadeusAPI {
 
     public FlightSearchResponseDTO getFlights(SearchDTO dto) throws IOException, InterruptedException, SyncFailedException {
         int elementLimit = 10;
-        boolean roundTrip = !dto.getDepartureDate().equals(dto.getArrivalDate());
+        boolean roundTrip = !dto.getDepartureDate().equals(dto.getReturnDate());
 
-        URI url = UriComponentsBuilder.fromHttpUrl(apiUrl + "v2/shopping/flight-offers")
+        UriComponentsBuilder url = UriComponentsBuilder.fromHttpUrl(apiUrl + "v2/shopping/flight-offers")
             .queryParam("originLocationCode", dto.getDepartureAirport())
             .queryParam("destinationLocationCode", dto.getArrivalAirport())
             .queryParam("departureDate", dto.getDepartureDate())
-            .queryParam(roundTrip ? "returnDate" : "", dto.getArrivalDate())
             .queryParam("adults", dto.getAdults())
             .queryParam("nonStop", dto.getNonStop())
             .queryParam("currencyCode", dto.getCurrency())
-            .queryParam("max", elementLimit)
-            .build().toUri();
+            .queryParam("max", elementLimit);
+
+        if(roundTrip) url.queryParam("returnDate", dto.getReturnDate());
 
         JsonObject responseBody;
         try {
-            responseBody = makeRequest(url);
+            responseBody = makeRequest(url.build().toUri());
         } catch(SyncFailedException _) {
 
             responseBody = makeRequest(URI.create("https://47e25352-8d0c-49c9-9f0c-bbfe4414cf6f.mock.pstmn.io/flight-offers/roundTrip"), true);
