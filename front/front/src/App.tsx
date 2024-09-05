@@ -31,7 +31,10 @@ function App() {
       nonStop: NotNullBoolean(params.get("nonStop")),
     };
 
-    if (ValidateSearchDTO(fromParams).hasError) return false;
+    if (ValidateSearchDTO(fromParams).hasError) {
+      window.location.search = "";
+      return false;
+    }
 
     setSearch(() => {
       return {
