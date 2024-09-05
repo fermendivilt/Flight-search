@@ -4,7 +4,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import Grid2 from "@mui/material/Unstable_Grid2";
+import Grid2 from "@mui/material/Grid2";
 import React, { useEffect } from "react";
 import { ListElement } from "../dto/SelectListDTO";
 
@@ -36,13 +36,13 @@ export default function AutocompleteInput({
 }: AutocompleteInputProps) {
   return (
     <>
-      <Grid2 xs={5}>
+      <Grid2 size={5}>
         <Typography variant="h5" align="right">
           <label htmlFor={id}>{label}</label>
         </Typography>
       </Grid2>
 
-      <Grid2 xs={6}>
+      <Grid2 size={6}>
         <Autocomplete
           {...options}
           filterOptions={(x) => x}

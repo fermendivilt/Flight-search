@@ -7,7 +7,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import Grid2 from "@mui/material/Unstable_Grid2";
+import Grid2 from "@mui/material/Grid2";
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import {
   Currencies,
@@ -223,7 +223,7 @@ export default function Search({
     <>
       <form id="searchForm" onSubmit={validate}>
         <Grid2 container gap={4}>
-          <Grid2 xs={12}>
+          <Grid2 size={12}>
             <Typography variant="h3" gutterBottom align="center">
               Flight Search
             </Typography>
@@ -253,13 +253,13 @@ export default function Search({
             validationError={validation.arrivalAirportError}
           />
 
-          <Grid2 xs={5}>
+          <Grid2 size={5}>
             <Typography variant="h5" align="right">
               <label htmlFor="DepartureDate">Departure date</label>
             </Typography>
           </Grid2>
 
-          <Grid2 xs={6}>
+          <Grid2 size={6}>
             <Input
               type="date"
               fullWidth
@@ -272,13 +272,13 @@ export default function Search({
             </Typography>
           </Grid2>
 
-          <Grid2 xs={5}>
+          <Grid2 size={5}>
             <Typography variant="h5" align="right">
               <label htmlFor="ArrivalDate">Arrival date</label>
             </Typography>
           </Grid2>
 
-          <Grid2 xs={6}>
+          <Grid2 size={6}>
             <Input
               type="date"
               fullWidth
@@ -291,13 +291,13 @@ export default function Search({
             </Typography>
           </Grid2>
 
-          <Grid2 xs={5}>
+          <Grid2 size={5}>
             <Typography variant="h5" align="right">
               <label htmlFor="adults">Number of adults</label>
             </Typography>
           </Grid2>
 
-          <Grid2 xs={6}>
+          <Grid2 size={6}>
             <Input
               type="number"
               fullWidth
@@ -310,13 +310,13 @@ export default function Search({
             </Typography>
           </Grid2>
 
-          <Grid2 xs={5}>
+          <Grid2 size={5}>
             <Typography variant="h5" align="right">
               <label htmlFor="Currency">Currency</label>
             </Typography>
           </Grid2>
 
-          <Grid2 xs={6}>
+          <Grid2 size={6}>
             <Autocomplete
               {...currencies}
               id="Currency"
@@ -334,9 +334,9 @@ export default function Search({
             </Typography>
           </Grid2>
 
-          <Grid2 xs={5}></Grid2>
+          <Grid2 size={5}></Grid2>
 
-          <Grid2 xs={6}>
+          <Grid2 size={6}>
             <Checkbox onChange={handleNonStopChange} sx={{ paddingLeft: 0 }} />{" "}
             Non-stop
           </Grid2>
