@@ -4,7 +4,7 @@ type SearchDTO = {
   departureAirport: string;
   arrivalAirport: string;
   departureDate: string;
-  arrivalDate: string;
+  returnDate: string;
   adults: number;
   currency: string;
   nonStop: boolean;
@@ -15,7 +15,7 @@ const EmptySearchDTO = (): SearchDTO => {
     departureAirport: "",
     arrivalAirport: "",
     departureDate: TodayDate(),
-    arrivalDate: TodayDate(),
+    returnDate: TodayDate(),
     adults: 1,
     currency: "",
     nonStop: false,
@@ -75,10 +75,10 @@ const validateDepartureDate = (dto: SearchDTO): string => {
   return "";
 };
 const validateArrivalDate = (dto: SearchDTO): string => {
-  const required = requiredValidation(dto.arrivalDate);
+  const required = requiredValidation(dto.returnDate);
   if (required.length > 0) return required;
 
-  const date = new Date(dto.arrivalDate);
+  const date = new Date(dto.returnDate);
   const departure = new Date(dto.departureDate);
   if (
     date.getFullYear() < departure.getFullYear() ||

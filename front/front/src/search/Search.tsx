@@ -184,7 +184,7 @@ export default function Search({
     setSearch((prev) => {
       return {
         ...prev,
-        arrivalDate: event.target.value,
+        returnDate: event.target.value,
       };
     });
   };
@@ -283,7 +283,7 @@ export default function Search({
               type="date"
               fullWidth
               id="ArrivalDate"
-              value={search.arrivalDate}
+              value={search.returnDate}
               onChange={handleArrivalDateChange}
             />
             <Typography variant="caption" className="error">

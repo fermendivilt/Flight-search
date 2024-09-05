@@ -50,13 +50,13 @@ public class FlightController {
     public ResponseEntity<FlightSearchResponseDTO> searchFlights(@RequestParam @NotBlank String departureAirport,
                                                                  @RequestParam @NotBlank String arrivalAirport,
                                                                  @RequestParam @NotBlank String departureDate,
-                                                                 @RequestParam @NotBlank String arrivalDate,
+                                                                 @RequestParam @NotBlank String returnDate,
                                                                  @RequestParam @Min(1) Integer adults,
                                                                  @RequestParam @NotNull Currency currency,
                                                                  @RequestParam @NotNull Boolean nonStop) {
         try {
             LocalDate departure = LocalDate.parse(departureDate);
-            LocalDate arrival = LocalDate.parse(arrivalDate);
+            LocalDate arrival = LocalDate.parse(returnDate);
             SearchDTO dto = new SearchDTO(departureAirport, arrivalAirport,
                 departure, arrival, adults, currency, nonStop);
 

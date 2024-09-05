@@ -25,7 +25,7 @@ function App() {
       departureAirport: NotNullString(params.get("departureAirport")),
       arrivalAirport: NotNullString(params.get("arrivalAirport")),
       departureDate: NotNullString(params.get("departureDate")),
-      arrivalDate: NotNullString(params.get("arrivalDate")),
+      returnDate: NotNullString(params.get("arrivalDate")),
       adults: NotNullNumber(params.get("adults")),
       currency: NotNullString(params.get("currency")),
       nonStop: NotNullBoolean(params.get("nonStop")),
