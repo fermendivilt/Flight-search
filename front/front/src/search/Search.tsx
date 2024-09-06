@@ -4,6 +4,7 @@ import {
   Button,
   Checkbox,
   Input,
+  Paper,
   TextField,
   Typography,
 } from "@mui/material";
@@ -221,133 +222,138 @@ export default function Search({
 
   return (
     <>
-      <form id="searchForm" onSubmit={validate}>
-        <Grid2 container gap={4}>
-          <Grid2 size={12}>
-            <Typography variant="h3" gutterBottom align="center">
-              Flight Search
-            </Typography>
-          </Grid2>
+      <Paper elevation={24} sx={{ padding: 8 }}>
+        <form id="searchForm" onSubmit={validate}>
+          <Grid2 container gap={4}>
+            <Grid2 size={12}>
+              <Typography variant="h3" gutterBottom align="center">
+                Flight Search
+              </Typography>
+            </Grid2>
 
-          <AutocompleteInput
-            label="Departure airport"
-            id="DepartureAirport"
-            loading={fetchDepartureAirports.isLoading}
-            options={departureAirports}
-            handleType={(value: string) =>
-              validateAirportSearch(value, fetchDepartureAirports.setUrl)
-            }
-            handleSelect={handleDepartureAirportChange}
-            validationError={validation.departureAirportError}
-          />
-
-          <AutocompleteInput
-            label="Arrival airport"
-            id="ArrivalAirport"
-            loading={fetchArrivalAirports.isLoading}
-            options={arrivalAirports}
-            handleType={(value: string) =>
-              validateAirportSearch(value, fetchArrivalAirports.setUrl)
-            }
-            handleSelect={handleArrivalAirportChange}
-            validationError={validation.arrivalAirportError}
-          />
-
-          <Grid2 size={5}>
-            <Typography variant="h5" align="right">
-              <label htmlFor="DepartureDate">Departure date</label>
-            </Typography>
-          </Grid2>
-
-          <Grid2 size={6}>
-            <Input
-              type="date"
-              fullWidth
-              id="DepartureDate"
-              value={search.departureDate}
-              onChange={handleDepartureDateChange}
+            <AutocompleteInput
+              label="Departure airport"
+              id="DepartureAirport"
+              loading={fetchDepartureAirports.isLoading}
+              options={departureAirports}
+              handleType={(value: string) =>
+                validateAirportSearch(value, fetchDepartureAirports.setUrl)
+              }
+              handleSelect={handleDepartureAirportChange}
+              validationError={validation.departureAirportError}
             />
-            <Typography variant="caption" className="error">
-              {validation.departureDateError}
-            </Typography>
-          </Grid2>
 
-          <Grid2 size={5}>
-            <Typography variant="h5" align="right">
-              <label htmlFor="ArrivalDate">Arrival date</label>
-            </Typography>
-          </Grid2>
-
-          <Grid2 size={6}>
-            <Input
-              type="date"
-              fullWidth
-              id="ArrivalDate"
-              value={search.returnDate}
-              onChange={handleArrivalDateChange}
+            <AutocompleteInput
+              label="Arrival airport"
+              id="ArrivalAirport"
+              loading={fetchArrivalAirports.isLoading}
+              options={arrivalAirports}
+              handleType={(value: string) =>
+                validateAirportSearch(value, fetchArrivalAirports.setUrl)
+              }
+              handleSelect={handleArrivalAirportChange}
+              validationError={validation.arrivalAirportError}
             />
-            <Typography variant="caption" className="error">
-              {validation.arrivalDateError}
-            </Typography>
+
+            <Grid2 size={5}>
+              <Typography variant="h5" align="right">
+                <label htmlFor="DepartureDate">Departure date</label>
+              </Typography>
+            </Grid2>
+
+            <Grid2 size={6}>
+              <Input
+                type="date"
+                fullWidth
+                id="DepartureDate"
+                value={search.departureDate}
+                onChange={handleDepartureDateChange}
+              />
+              <Typography variant="caption" className="error">
+                {validation.departureDateError}
+              </Typography>
+            </Grid2>
+
+            <Grid2 size={5}>
+              <Typography variant="h5" align="right">
+                <label htmlFor="ArrivalDate">Arrival date</label>
+              </Typography>
+            </Grid2>
+
+            <Grid2 size={6}>
+              <Input
+                type="date"
+                fullWidth
+                id="ArrivalDate"
+                value={search.returnDate}
+                onChange={handleArrivalDateChange}
+              />
+              <Typography variant="caption" className="error">
+                {validation.arrivalDateError}
+              </Typography>
+            </Grid2>
+
+            <Grid2 size={5}>
+              <Typography variant="h5" align="right">
+                <label htmlFor="adults">Number of adults</label>
+              </Typography>
+            </Grid2>
+
+            <Grid2 size={6}>
+              <Input
+                type="number"
+                fullWidth
+                id="adults"
+                value={search.adults}
+                onChange={handleAdultsChange}
+              />
+              <Typography variant="caption" className="error">
+                {validation.adultsError}
+              </Typography>
+            </Grid2>
+
+            <Grid2 size={5}>
+              <Typography variant="h5" align="right">
+                <label htmlFor="Currency">Currency</label>
+              </Typography>
+            </Grid2>
+
+            <Grid2 size={6}>
+              <Autocomplete
+                {...currencies}
+                id="Currency"
+                selectOnFocus
+                blurOnSelect
+                clearOnBlur
+                handleHomeEndKeys
+                renderInput={(params) => (
+                  <TextField {...params} label="Search" variant="outlined" />
+                )}
+                onChange={(_e, value, _r, _d) => handleCurrencyChange(value)}
+              />
+              <Typography variant="caption" className="error">
+                {validation.currencyError}
+              </Typography>
+            </Grid2>
+
+            <Grid2 size={5}></Grid2>
+
+            <Grid2 size={6}>
+              <Checkbox
+                onChange={handleNonStopChange}
+                sx={{ paddingLeft: 0 }}
+              />{" "}
+              Non-stop
+            </Grid2>
           </Grid2>
 
-          <Grid2 size={5}>
-            <Typography variant="h5" align="right">
-              <label htmlFor="adults">Number of adults</label>
-            </Typography>
-          </Grid2>
-
-          <Grid2 size={6}>
-            <Input
-              type="number"
-              fullWidth
-              id="adults"
-              value={search.adults}
-              onChange={handleAdultsChange}
-            />
-            <Typography variant="caption" className="error">
-              {validation.adultsError}
-            </Typography>
-          </Grid2>
-
-          <Grid2 size={5}>
-            <Typography variant="h5" align="right">
-              <label htmlFor="Currency">Currency</label>
-            </Typography>
-          </Grid2>
-
-          <Grid2 size={6}>
-            <Autocomplete
-              {...currencies}
-              id="Currency"
-              selectOnFocus
-              blurOnSelect
-              clearOnBlur
-              handleHomeEndKeys
-              renderInput={(params) => (
-                <TextField {...params} label="Search" variant="outlined" />
-              )}
-              onChange={(_e, value, _r, _d) => handleCurrencyChange(value)}
-            />
-            <Typography variant="caption" className="error">
-              {validation.currencyError}
-            </Typography>
-          </Grid2>
-
-          <Grid2 size={5}></Grid2>
-
-          <Grid2 size={6}>
-            <Checkbox onChange={handleNonStopChange} sx={{ paddingLeft: 0 }} />{" "}
-            Non-stop
-          </Grid2>
-        </Grid2>
-
-        <Box display="flex" justifyContent="end">
-          <Button type="submit" form="searchForm" variant="contained">
-            Search
-          </Button>
-        </Box>
-      </form>
+          <Box display="flex" justifyContent="end">
+            <Button type="submit" form="searchForm" variant="contained">
+              Search
+            </Button>
+          </Box>
+        </form>
+      </Paper>
       {snackbarMessage.length > 0 && (
         <FastSnackbar
           message={snackbarMessage}

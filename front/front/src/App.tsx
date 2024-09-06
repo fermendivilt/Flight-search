@@ -58,17 +58,17 @@ function App() {
 
   return (
     <Container fixed sx={{ height: "100vh", alignContent: "center" }}>
-      <Paper elevation={24} sx={{ padding: 8 }}>
-        {page === "search" && (
-          <Search
-            search={search}
-            setSearch={setSearch}
-            moveToResults={() => setPage("results")}
-          />
-        )}
-        {page === "results" && <SearchResults search={search} />}
-        {page === "details" && <p>Details</p>}
-      </Paper>
+      {page === "search" && (
+        <Search
+          search={search}
+          setSearch={setSearch}
+          moveToResults={() => setPage("results")}
+        />
+      )}
+      {page === "results" && (
+        <SearchResults search={search} backToSearch={backToSearch} />
+      )}
+      {page === "details" && <p>Details</p>}
     </Container>
   );
 }
