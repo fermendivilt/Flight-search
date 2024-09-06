@@ -12,6 +12,8 @@ import {
 
 type Page = "search" | "results" | "details";
 
+const clearParams = () => window.location.search = "";
+
 function App() {
   const [search, setSearch] = useState<SearchDTO>(EmptySearchDTO());
   const [page, setPage] = useState<Page>("search");
@@ -32,7 +34,7 @@ function App() {
     };
 
     if (ValidateSearchDTO(fromParams).hasError) {
-      window.location.search = "";
+      clearParams();
       return false;
     }
 
@@ -44,6 +46,11 @@ function App() {
 
     return true;
   };
+
+  const backToSearch = () => {
+    clearParams();
+    setPage("search");
+  }
 
   useEffect(() => {
     if (checkUrlForSearch()) setPage("results");
