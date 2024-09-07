@@ -1,4 +1,5 @@
 import { TodayDate } from "../utils/StringToDate";
+import { StringToValidCurrency } from "../literals/Currencies";
 
 type SearchDTO = {
   departureAirport: string;
@@ -69,7 +70,7 @@ const validateDepartureDate = (dto: SearchDTO): string => {
 
   const date = new Date(dto.departureDate);
   const present = new Date(TodayDate());
-  
+
   if (date < present) return "Date cannot be in the past";
 
   return "";
@@ -100,7 +101,8 @@ const validateAdults = (dto: SearchDTO): string => {
   return "";
 };
 const validateCurrency = (dto: SearchDTO): string => {
-  if (!Currencies.includes(dto.currency)) return "Not a valid currency";
+  if (StringToValidCurrency(dto.currency) === null)
+    return "Not a valid currency";
 
   return "";
 };
@@ -110,7 +112,5 @@ const requiredValidation = (value: string): string => {
   return "";
 };
 
-const Currencies = ["USD", "MXN", "EUR"];
-
 export type { SearchDTO, SearchDTOValidation };
-export { EmptySearchDTO, ValidateSearchDTO, Currencies };
+export { EmptySearchDTO, ValidateSearchDTO };

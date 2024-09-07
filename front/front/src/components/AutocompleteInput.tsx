@@ -5,10 +5,13 @@ import {
   Typography,
 } from "@mui/material";
 import Grid2 from "@mui/material/Grid2";
-import React, { useEffect } from "react";
-import { ListElement } from "../dto/SelectListDTO";
+import React from "react";
 
-type Option = ListElement;
+type Option = {
+  id: number;
+  displayName: string;
+  code: string;
+};
 
 type OptionList = {
   options: Array<Option>;

@@ -1,9 +1,5 @@
-type Airport = {
-  name: string;
-  country: string;
-  iataCode: string;
-};
+import { AirportId } from "../types/AirportId";
 
-type AirportDTO = Array<Airport>;
+type AirportDTO = Array<AirportId>;
 
 export type { AirportDTO };

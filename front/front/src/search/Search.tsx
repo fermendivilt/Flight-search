@@ -11,14 +11,12 @@ import {
 import Grid2 from "@mui/material/Grid2";
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import {
-  Currencies,
   SearchDTO,
   SearchDTOValidation,
   ValidateSearchDTO,
 } from "../dto/SearchDTO";
 import { useGetAirports } from "../requester/Requester";
-import { ListElement } from "../dto/SelectListDTO";
-import AutocompleteInput, { OptionList } from "../components/AutocompleteInput";
+import AutocompleteInput, { Option, OptionList } from "../components/AutocompleteInput";
 import FastSnackbar from "../components/Snackbar";
 
 interface SearchProps {
@@ -27,15 +25,15 @@ interface SearchProps {
   moveToResults: () => void;
 }
 
-const currencyList: Array<ListElement> = [
-  { id: 0, displayName: "United States Dollar", code: Currencies[0] },
-  { id: 1, displayName: "Mexican Peso", code: Currencies[1] },
-  { id: 2, displayName: "Euro", code: Currencies[2] },
+const currencyList: Array<Option> = [
+  { id: 0, displayName: "United States Dollar", code: "USD" },
+  { id: 1, displayName: "Mexican Peso", code: "MXN" },
+  { id: 2, displayName: "Euro", code: "EUR" },
 ];
 
 const currencies = {
   options: currencyList,
-  getOptionLabel: (option: ListElement) => option.displayName,
+  getOptionLabel: (option: Option) => option.displayName,
 };
 
 export default function Search({
@@ -149,7 +147,7 @@ export default function Search({
     fetchArrivalAirports.error,
   ]);
 
-  const handleDepartureAirportChange = (value: ListElement | null) => {
+  const handleDepartureAirportChange = (value: Option | null) => {
     if (value == null) return;
 
     setSearch((prev) => {
@@ -159,7 +157,7 @@ export default function Search({
       };
     });
   };
-  const handleArrivalAirportChange = (value: ListElement | null) => {
+  const handleArrivalAirportChange = (value: Option | null) => {
     if (value == null) return;
 
     setSearch((prev) => {
@@ -201,7 +199,7 @@ export default function Search({
       };
     });
   };
-  const handleCurrencyChange = (value: ListElement | null) => {
+  const handleCurrencyChange = (value: Option | null) => {
     if (value == null) return;
 
     setSearch((prev) => {
