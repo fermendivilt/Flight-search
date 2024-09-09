@@ -3,6 +3,7 @@ import { SearchDTO } from "../dto/SearchDTO";
 import { AirportDTO } from "../dto/AirportDTO";
 import { useCallback, useEffect, useState } from "react";
 import debounce from "../utils/Debouncer";
+import { SearchResponseDTO } from "../dto/SearchResponseDTO";
 
 axios.defaults.baseURL = "http://localhost:8080/api";
 
@@ -81,11 +82,11 @@ const useSearchFlights = (query: SearchDTO) => {
     nonStop: query.nonStop.toString(),
   };
 
-  return useAxios({
+  return useAxios<SearchResponseDTO>({
     initialUrl:
       "/flight/search?" + new URLSearchParams(preparedQuery).toString(),
     method: "get",
-    debounceTime: 1500,
+    debounceTime: 0,
     body: "",
     headers: "",
   });
