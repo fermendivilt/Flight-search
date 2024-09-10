@@ -9,7 +9,7 @@ const DateTo12H = (time: Date): string => {
 //PnDTnHnM : n = /\d+/g;
 const DurationTo12H = (duration: string): string => {
   const regex = /\d+/g;
-  const result = "";
+  let result = "";
   let index = 0;
 
   const durations = duration.match(regex);
@@ -17,11 +17,16 @@ const DurationTo12H = (duration: string): string => {
   if (durations === null) return "";
 
   if (durations.length === 3) {
-    result.concat(durations[index] + " day(s), ");
+    result = result.concat(durations[index] + " day(s), ");
     index += 1;
   }
 
-  result.concat(durations[index] + "h " + durations[index + 1] + "m");
+  result = result.concat(
+    (durations[index] !== undefined ? durations[index] + "h " : "") +
+      (durations[index + 1] !== undefined ? durations[index + 1] + "m" : "")
+  );
+
+  console.log({ duration: duration, result: result });
 
   return result;
 };
