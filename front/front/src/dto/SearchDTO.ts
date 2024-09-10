@@ -81,11 +81,7 @@ const validateArrivalDate = (dto: SearchDTO): string => {
 
   const date = new Date(dto.returnDate);
   const departure = new Date(dto.departureDate);
-  if (
-    date.getFullYear() < departure.getFullYear() ||
-    date.getMonth() < departure.getMonth() ||
-    date.getDay() < departure.getDay()
-  )
+  if (date < departure)
     return "Arrival cannot be before departure";
 
   return "";
