@@ -18,8 +18,6 @@ interface SearchResultsProps {
   backToSearch: () => void;
 }
 
-const pageSize = 4;
-
 export default function SearchResults({
   search,
   backToSearch,
@@ -27,6 +25,8 @@ export default function SearchResults({
   const [snackbarMessage, setSnackbarMessage] = useState("");
 
   const oneWayTrip = search.departureDate === search.returnDate;
+  const pageSize = oneWayTrip ? 4 : 3;
+
 
   const fetchFlights = useSearchFlights(search);
   const [flights, setFlights] = useState<
@@ -96,7 +96,7 @@ export default function SearchResults({
 
         {loadingData && Array.from({ length: pageSize }).map(() => (
           <Paper elevation={5} sx={{ padding: 3 }}>
-            <Skeleton variant="rounded" height={96}/>
+            <Skeleton variant="rounded" height={oneWayTrip ? 96 : 190}/>
           </Paper>
         ))}
 
