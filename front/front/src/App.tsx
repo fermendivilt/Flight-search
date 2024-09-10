@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-import { Container, Paper } from "@mui/material";
+import { Container } from "@mui/material";
 import Search from "./search/Search";
 import SearchResults from "./searchResults/SearchResults";
 import { EmptySearchDTO, SearchDTO, ValidateSearchDTO } from "./dto/SearchDTO";
@@ -12,7 +12,7 @@ import {
 
 type Page = "search" | "results" | "details";
 
-const clearParams = () => window.location.search = "";
+const clearParams = () => (window.location.search = "");
 
 function App() {
   const [search, setSearch] = useState<SearchDTO>(EmptySearchDTO());
@@ -27,7 +27,7 @@ function App() {
       departureAirport: NotNullString(params.get("departureAirport")),
       arrivalAirport: NotNullString(params.get("arrivalAirport")),
       departureDate: NotNullString(params.get("departureDate")),
-      returnDate: NotNullString(params.get("arrivalDate")),
+      returnDate: NotNullString(params.get("returnDate")),
       adults: NotNullNumber(params.get("adults")),
       currency: NotNullString(params.get("currency")),
       nonStop: NotNullBoolean(params.get("nonStop")),
