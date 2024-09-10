@@ -1,4 +1,13 @@
-import { FlightOffer, Dictionaries } from "../dto/SearchResponseDTO";
+import { FlightOffer, Dictionaries, Itinerary } from "../dto/SearchResponseDTO";
+import { DurationTo12H } from "../utils/TimeUtils";
+
+interface RoundFlightSummary extends OneWayFlightSummary {
+  returnFlight: FlightSummary;
+}
+
+interface OneWayFlightSummary {
+  forwardFlight: FlightSummary;
+}
 
 interface FlightSummary {
   initialDeparture: string;
@@ -18,8 +27,8 @@ interface Airport extends NameCode {}
 interface Airline extends NameCode {}
 
 interface NameCode {
-    name: string;
-    code: string;
+  name: string;
+  code: string;
 }
 
 interface Stop {
@@ -27,68 +36,106 @@ interface Stop {
   duration: string;
 }
 
-function createFlightSummary(flightOffer: FlightOffer, dictionaries: Dictionaries): FlightSummary {
-    const initialSegment = flightOffer.itineraries[0].segments[0];
-    const finalSegment = flightOffer.itineraries[flightOffer.itineraries.length - 1].segments.slice(-1)[0];
-  
-    const initialDeparture = initialSegment.departure.at;
-    const finalArrival = finalSegment.arrival.at;
-  
-    const departureAirport: Airport = {
-      name: dictionaries.locations[initialSegment.departure.iataCode].cityCode,
-      code: initialSegment.departure.iataCode
-    };
-  
-    const arrivalAirport: Airport = {
-      name: dictionaries.locations[finalSegment.arrival.iataCode].cityCode,
-      code: finalSegment.arrival.iataCode
-    };
-  
-    const airline: Airline = {
-      name: dictionaries.carriers[initialSegment.carrierCode],
-      code: initialSegment.carrierCode
-    };
-  
-    const operatingAirline: Airline | undefined = initialSegment.operating.carrierCode !== initialSegment.carrierCode ? {
-      name: dictionaries.carriers[initialSegment.operating.carrierCode],
-      code: initialSegment.operating.carrierCode
-    } : undefined;
-  
-    const totalTime = flightOffer.itineraries.reduce((total, itinerary) => {
-      const duration = itinerary.duration.match(/PT(\d+H)?(\d+M)?/);
-      if(duration === null) return total + 0;
+function createRoundFlightSummary(
+  flightOffer: FlightOffer,
+  dictionaries: Dictionaries
+): RoundFlightSummary {
+  return {
+    forwardFlight: createFlightSummary(
+      flightOffer,
+      dictionaries,
+      flightOffer.itineraries[0]
+    ),
+    returnFlight: createFlightSummary(
+      flightOffer,
+      dictionaries,
+      flightOffer.itineraries[1]
+    ),
+  };
+}
 
-      const hours = duration[1] ? parseInt(duration[1].replace('H', '')) : 0;
-      const minutes = duration[2] ? parseInt(duration[2].replace('M', '')) : 0;
-      return total + (hours * 60) + minutes;
-    }, 0);
-  
-    const stops: Stop[] = flightOffer.itineraries.flatMap(itinerary => 
-      itinerary.segments.slice(1).map(segment => ({
-        airport: {
-          name: dictionaries.locations[segment.departure.iataCode].cityCode,
-          code: segment.departure.iataCode
-        },
-        duration: segment.duration
-      }))
-    );
-  
-    const totalPrice = flightOffer.price.grandTotal;
-    const pricePerTraveler = (parseFloat(totalPrice) / flightOffer.travelerPricings.length).toFixed(2);
-  
-    return {
-      initialDeparture,
-      finalArrival,
-      departureAirport,
-      arrivalAirport,
-      airline,
-      operatingAirline,
-      totalTime: `${Math.floor(totalTime / 60)}H${totalTime % 60}M`,
-      stops,
-      totalPrice,
-      pricePerTraveler
-    };
-  }
-  
+function createOneWayFlightSummary(
+  flightOffer: FlightOffer,
+  dictionaries: Dictionaries
+): OneWayFlightSummary {
+  return {
+    forwardFlight: createFlightSummary(flightOffer, dictionaries),
+  };
+}
 
-export type { FlightSummary, Airline, Stop };
+function createFlightSummary(
+  flightOffer: FlightOffer,
+  dictionaries: Dictionaries,
+  itinerary?: Itinerary
+): FlightSummary {
+  const baseItinerary = itinerary ?? flightOffer.itineraries[0];
+
+  const initialSegment = baseItinerary.segments[0];
+  const finalSegment = baseItinerary.segments.slice(-1)[0];
+
+  const initialDeparture = initialSegment.departure.at;
+  const finalArrival = finalSegment.arrival.at;
+
+  const departureAirport: Airport = {
+    name: dictionaries.locations[initialSegment.departure.iataCode].cityCode,
+    code: initialSegment.departure.iataCode,
+  };
+
+  const arrivalAirport: Airport = {
+    name: dictionaries.locations[finalSegment.arrival.iataCode].cityCode,
+    code: finalSegment.arrival.iataCode,
+  };
+
+  const airline: Airline = {
+    name: dictionaries.carriers[initialSegment.carrierCode],
+    code: initialSegment.carrierCode,
+  };
+
+  const operatingAirlineSegment =
+    initialSegment.operating ??
+    finalSegment.operating ??
+    initialSegment.carrierCode;
+
+  const operatingAirline: Airline | undefined =
+    operatingAirlineSegment.carrierCode !== initialSegment.carrierCode
+      ? {
+          name: dictionaries.carriers[operatingAirlineSegment.carrierCode],
+          code: operatingAirlineSegment.carrierCode,
+        }
+      : undefined;
+
+  const stops: Stop[] = baseItinerary.segments.slice(1).map((segment) => ({
+    airport: {
+      name: dictionaries.locations[segment.departure.iataCode].cityCode,
+      code: segment.departure.iataCode,
+    },
+    duration: DurationTo12H(segment.duration),
+  }));
+
+  const totalPrice = flightOffer.price.grandTotal;
+  const pricePerTraveler = (
+    parseFloat(totalPrice) / flightOffer.travelerPricings.length
+  ).toFixed(2);
+
+  return {
+    initialDeparture,
+    finalArrival,
+    departureAirport,
+    arrivalAirport,
+    airline,
+    operatingAirline,
+    totalTime: DurationTo12H(baseItinerary.duration),
+    stops,
+    totalPrice,
+    pricePerTraveler,
+  };
+}
+
+export type {
+  FlightSummary,
+  OneWayFlightSummary,
+  RoundFlightSummary,
+  Airline,
+  Stop,
+};
+export { createOneWayFlightSummary, createRoundFlightSummary };

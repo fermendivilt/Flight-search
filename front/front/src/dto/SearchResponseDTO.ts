@@ -127,4 +127,4 @@ interface SearchResponseDTO {
   dictionaries: Dictionaries;
 }
 
-export type { SearchResponseDTO, FlightOffer, Dictionaries }
+export type { SearchResponseDTO, FlightOffer, Itinerary, Dictionaries }
