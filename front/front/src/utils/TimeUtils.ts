@@ -26,8 +26,6 @@ const DurationTo12H = (duration: string): string => {
       (durations[index + 1] !== undefined ? durations[index + 1] + "m" : "")
   );
 
-  console.log({ duration: duration, result: result });
-
   return result;
 };
 
