@@ -16,7 +16,10 @@ import {
   ValidateSearchDTO,
 } from "../dto/SearchDTO";
 import { useGetAirports } from "../requester/Requester";
-import AutocompleteInput, { Option, OptionList } from "../components/AutocompleteInput";
+import AutocompleteInput, {
+  Option,
+  OptionList,
+} from "../components/AutocompleteInput";
 import FastSnackbar from "../components/Snackbar";
 
 interface SearchProps {
@@ -170,10 +173,14 @@ export default function Search({
   const handleDepartureDateChange = (
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
+    const compare =
+      new Date(Date.parse(event.target.value)) >
+      new Date(Date.parse(search.returnDate)) ? event.target.value : search.returnDate;
     setSearch((prev) => {
       return {
         ...prev,
         departureDate: event.target.value,
+        returnDate: compare
       };
     });
   };
