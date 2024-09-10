@@ -16,8 +16,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class AmadeusAPI {
     private final HttpClient client;
@@ -27,6 +26,8 @@ public class AmadeusAPI {
     private String tokenType;
     private String accessToken;
     private LocalDateTime expiration;
+
+    private Map<String, String> airportNameFromCode = HashMap.newHashMap(64);
 
     public AmadeusAPI(String key, String secret) {
         client = HttpClient.newBuilder().build();
@@ -88,6 +89,30 @@ public class AmadeusAPI {
         return result;
     }
 
+    private String getAirportByCode(String code) throws IOException, InterruptedException {
+        URI url = UriComponentsBuilder.fromHttpUrl(apiUrl + "v1/reference-data/locations")
+            .queryParam("subType","AIRPORT")
+            .queryParam("keyword", code)
+            .queryParam("view", "LIGHT")
+            .build().toUri();
+
+        JsonObject response;
+        try {
+            response = makeRequest(url);
+        } catch(SyncFailedException _) {
+            response = makeRequest(URI.create("https://21cddc1f-4b79-4af6-b653-f13e26c28830.mock.pstmn.io"), true);
+        }
+
+        JsonObject element = response.getAsJsonArray("data").get(0).getAsJsonObject();
+
+        String result = element.get("name").getAsString();
+
+        airportNameFromCode.put(code, result);
+
+        return result;
+    }
+
+
     public FlightSearchResponseDTO getFlights(SearchDTO dto) throws IOException, InterruptedException, SyncFailedException {
         //int elementLimit = 10;
         boolean roundTrip = !dto.getDepartureDate().equals(dto.getReturnDate());
@@ -113,7 +138,20 @@ public class AmadeusAPI {
 
         Gson gson = new GsonBuilder().create();
 
-        return gson.fromJson(responseBody, FlightSearchResponseDTO.class);
+        FlightSearchResponseDTO result = gson.fromJson(responseBody, FlightSearchResponseDTO.class);
+
+        var resultLocationReference = result.getDictionaries().getLocations();
+
+        for (Map.Entry<String, FlightSearchResponseDTO.Location> entry : resultLocationReference.entrySet()) {
+            String key = entry.getKey();
+            FlightSearchResponseDTO.Location value = entry.getValue();
+            if (airportNameFromCode.containsKey(key))
+                value.setCityCode(airportNameFromCode.get(key));
+            else
+                value.setCityCode(getAirportByCode(key));
+        }
+
+        return result;
     }
 
     private JsonObject makeRequest(URI uri) throws IOException, InterruptedException, SyncFailedException {
