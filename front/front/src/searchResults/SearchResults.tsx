@@ -1,4 +1,11 @@
-import { Button, Divider, Pagination, Paper, Skeleton, Stack } from "@mui/material";
+import {
+  Button,
+  Divider,
+  Pagination,
+  Paper,
+  Skeleton,
+  Stack,
+} from "@mui/material";
 import { SearchDTO } from "../dto/SearchDTO";
 import { useSearchFlights } from "../requester/Requester";
 import { useEffect, useState } from "react";
@@ -26,7 +33,6 @@ export default function SearchResults({
 
   const oneWayTrip = search.departureDate === search.returnDate;
   const pageSize = oneWayTrip ? 4 : 3;
-
 
   const fetchFlights = useSearchFlights(search);
   const [flights, setFlights] = useState<
@@ -94,13 +100,15 @@ export default function SearchResults({
           </Button>
         </Stack>
 
-        {loadingData && Array.from({ length: pageSize }).map(() => (
-          <Paper elevation={5} sx={{ padding: 3 }}>
-            <Skeleton variant="rounded" height={oneWayTrip ? 96 : 190}/>
-          </Paper>
-        ))}
+        {loadingData &&
+          Array.from({ length: pageSize }).map(() => (
+            <Paper elevation={5} sx={{ padding: 3 }}>
+              <Skeleton variant="rounded" height={oneWayTrip ? 96 : 190} />
+            </Paper>
+          ))}
 
-        {(!loadingData && oneWayTrip) &&
+        {!loadingData &&
+          oneWayTrip &&
           flightsOnDisplay.map((value, key) => (
             <OneWayFlight
               key={key}
@@ -108,7 +116,8 @@ export default function SearchResults({
             />
           ))}
 
-        {(!loadingData && !oneWayTrip) &&
+        {!loadingData &&
+          !oneWayTrip &&
           flightsOnDisplay.map((value, key) => (
             <TwoWayFlight
               key={key}

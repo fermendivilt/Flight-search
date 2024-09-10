@@ -3,14 +3,42 @@ import Grid from "@mui/material/Grid2";
 import Flight from "./IndividualFlight";
 import FlightCosts from "./FlightCosts";
 import { FlightSummary } from "../types/Flights";
+import styled from "@emotion/styled";
+import { useState } from "react";
 
 interface OneWayFlightProps extends FlightSummary {
   currency: string;
 }
 
+const StyledPaper = styled(Paper)({
+  position: "relative",
+  overflow: "hidden",
+  padding: 3,
+  cursor: "pointer",
+});
+
+const BrightnessOverlay = styled("div")({
+  position: "absolute",
+  top: 0,
+  left: 0,
+  width: "100%",
+  height: "100%",
+  pointerEvents: "none",
+  transition: "background 0.3s ease",
+});
+
 export default function OneWayFlight(props: OneWayFlightProps) {
+  const [hover, setHover] = useState(false);
+
   return (
-    <Paper elevation={5} sx={{ padding: 3 }}>
+    <StyledPaper
+      elevation={5}
+      onMouseEnter={() => setHover(true)}
+      onClick={props.onClick}
+    >
+      <BrightnessOverlay
+        style={hover ? { animation: "wave 0.1s forwards" } : {}}
+      />
       <Grid container spacing={1}>
         <Grid size="grow" container>
           <Flight
@@ -38,6 +66,6 @@ export default function OneWayFlight(props: OneWayFlightProps) {
           />
         </Grid>
       </Grid>
-    </Paper>
+    </StyledPaper>
   );
 }

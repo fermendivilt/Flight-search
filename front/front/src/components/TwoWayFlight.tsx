@@ -3,14 +3,42 @@ import Grid from "@mui/material/Grid2";
 import Flight from "./IndividualFlight";
 import FlightCosts from "./FlightCosts";
 import { RoundFlightSummary } from "../types/Flights";
+import styled from "@emotion/styled";
+import { useState } from "react";
 
 interface TwoWayFlightProps extends RoundFlightSummary {
   currency: string;
 }
 
+const StyledPaper = styled(Paper)({
+  position: "relative",
+  overflow: "hidden",
+  padding: 3,
+  cursor: "pointer",
+});
+
+const BrightnessOverlay = styled("div")({
+  position: "absolute",
+  top: 0,
+  left: 0,
+  width: "100%",
+  height: "100%",
+  pointerEvents: "none",
+  transition: "background 0.3s ease",
+});
+
 export default function TwoWayFlight(props: TwoWayFlightProps) {
+  const [hover, setHover] = useState(false);
+
   return (
-    <Paper elevation={5} sx={{ padding: 3 }}>
+    <StyledPaper
+      elevation={5}
+      onMouseEnter={() => setHover(true)}
+      onClick={props.onClick}
+    >
+      <BrightnessOverlay
+        style={hover ? { animation: "wave 0.1s forwards" } : {}}
+      />
       <Grid container>
         <Grid size="grow" container>
           <Flight
@@ -34,7 +62,7 @@ export default function TwoWayFlight(props: TwoWayFlightProps) {
             </Divider>
           </Grid>
 
-          <Flight 
+          <Flight
             departureName={props.returnFlight.departureAirport.name}
             departureTime={
               new Date(Date.parse(props.returnFlight.initialDeparture))
@@ -47,7 +75,7 @@ export default function TwoWayFlight(props: TwoWayFlightProps) {
             stops={props.returnFlight.stops}
             airlineName={props.returnFlight.airline.name}
             airlineCode={props.returnFlight.airline.code}
-            />
+          />
         </Grid>
         <Grid size="auto">
           <Divider orientation="vertical" />
@@ -64,6 +92,6 @@ export default function TwoWayFlight(props: TwoWayFlightProps) {
           />
         </Grid>
       </Grid>
-    </Paper>
+    </StyledPaper>
   );
 }
