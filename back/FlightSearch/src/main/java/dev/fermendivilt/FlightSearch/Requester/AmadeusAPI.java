@@ -89,7 +89,7 @@ public class AmadeusAPI {
     }
 
     public FlightSearchResponseDTO getFlights(SearchDTO dto) throws IOException, InterruptedException, SyncFailedException {
-        int elementLimit = 10;
+        //int elementLimit = 10;
         boolean roundTrip = !dto.getDepartureDate().equals(dto.getReturnDate());
 
         UriComponentsBuilder url = UriComponentsBuilder.fromHttpUrl(apiUrl + "v2/shopping/flight-offers")
@@ -98,8 +98,8 @@ public class AmadeusAPI {
             .queryParam("departureDate", dto.getDepartureDate())
             .queryParam("adults", dto.getAdults())
             .queryParam("nonStop", dto.getNonStop())
-            .queryParam("currencyCode", dto.getCurrency())
-            .queryParam("max", elementLimit);
+            .queryParam("currencyCode", dto.getCurrency());
+            //.queryParam("max", elementLimit);
 
         if(roundTrip) url.queryParam("returnDate", dto.getReturnDate());
 
@@ -113,7 +113,7 @@ public class AmadeusAPI {
 
         Gson gson = new GsonBuilder().create();
 
-        return gson.fromJson(responseBody.getAsJsonArray("data"), FlightSearchResponseDTO.class);
+        return gson.fromJson(responseBody, FlightSearchResponseDTO.class);
     }
 
     private JsonObject makeRequest(URI uri) throws IOException, InterruptedException, SyncFailedException {
