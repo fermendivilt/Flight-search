@@ -11,7 +11,7 @@ const NotNullString = <T,>(value: T | null): string => {
 const NotNullBoolean = <T,>(value: T | null): boolean => {
   if (IsNull(value)) return false;
 
-  return Boolean(value);
+  return Boolean(value?.toString() === "true" || value === 1);
 };
 const NotNullNumber = <T,>(value: T | null): number => {
   if (IsNull(value)) return 0;
