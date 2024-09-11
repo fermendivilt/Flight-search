@@ -23,11 +23,13 @@ import {
 interface SearchResultsProps {
   search: SearchDTO;
   backToSearch: () => void;
+  toDetails: () => void;
 }
 
 export default function SearchResults({
   search,
   backToSearch,
+  toDetails,
 }: SearchResultsProps) {
   const [snackbarMessage, setSnackbarMessage] = useState("");
 
@@ -113,6 +115,7 @@ export default function SearchResults({
             <OneWayFlight
               key={key}
               {...{ currency: search.currency, forwardFlight: value.forwardFlight }}
+              onClick={toDetails}
             />
           ))}
 
@@ -126,6 +129,7 @@ export default function SearchResults({
                 forwardFlight: value.forwardFlight,
                 returnFlight: (value as RoundFlightSummary).returnFlight,
               }}
+              onClick={toDetails}
             />
           ))}
 

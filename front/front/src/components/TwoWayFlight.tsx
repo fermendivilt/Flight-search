@@ -8,6 +8,7 @@ import { useState } from "react";
 
 interface TwoWayFlightProps extends RoundFlightSummary {
   currency: string;
+  onClick: () => void;
 }
 
 const StyledPaper = styled(Paper)({

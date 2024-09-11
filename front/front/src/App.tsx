@@ -9,6 +9,7 @@ import {
   NotNullNumber,
   NotNullString,
 } from "./utils/NullUtils";
+import SearchDetails from "./searchDetails/SearchDetails";
 
 type Page = "search" | "results" | "details";
 
@@ -50,7 +51,11 @@ function App() {
   const backToSearch = () => {
     clearParams();
     setPage("search");
-  }
+  };
+
+  const toDetails = () => {
+    setPage("details");
+  };
 
   useEffect(() => {
     if (checkUrlForSearch()) setPage("results");
@@ -66,9 +71,13 @@ function App() {
         />
       )}
       {page === "results" && (
-        <SearchResults search={search} backToSearch={backToSearch} />
+        <SearchResults
+          search={search}
+          backToSearch={backToSearch}
+          toDetails={toDetails}
+        />
       )}
-      {page === "details" && <p>Details</p>}
+      {page === "details" && <SearchDetails />}
     </Container>
   );
 }
