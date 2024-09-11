@@ -112,7 +112,7 @@ export default function SearchResults({
           flightsOnDisplay.map((value, key) => (
             <OneWayFlight
               key={key}
-              {...{ currency: search.currency, ...value.forwardFlight }}
+              {...{ currency: search.currency, forwardFlight: value.forwardFlight }}
             />
           ))}
 

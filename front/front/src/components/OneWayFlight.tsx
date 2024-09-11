@@ -2,18 +2,18 @@ import { Paper } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import Flight from "./IndividualFlight";
 import FlightCosts from "./FlightCosts";
-import { FlightSummary } from "../types/Flights";
+import { OneWayFlightSummary } from "../types/Flights";
 import styled from "@emotion/styled";
 import { useState } from "react";
 
-interface OneWayFlightProps extends FlightSummary {
+interface OneWayFlightProps extends OneWayFlightSummary {
   currency: string;
+  onClick: () => void;
 }
 
 const StyledPaper = styled(Paper)({
   position: "relative",
   overflow: "hidden",
-  padding: 3,
   cursor: "pointer",
 });
 
@@ -33,7 +33,9 @@ export default function OneWayFlight(props: OneWayFlightProps) {
   return (
     <StyledPaper
       elevation={5}
+      sx={{ padding: 3 }}
       onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
       onClick={props.onClick}
     >
       <BrightnessOverlay
@@ -42,16 +44,16 @@ export default function OneWayFlight(props: OneWayFlightProps) {
       <Grid container spacing={1}>
         <Grid size="grow" container>
           <Flight
-            departureName={props.departureAirport.name}
-            departureTime={new Date(Date.parse(props.initialDeparture))}
-            departureCode={props.departureAirport.code}
-            arrivalName={props.arrivalAirport.name}
-            arrivalTime={new Date(Date.parse(props.finalArrival))}
-            arrivalCode={props.arrivalAirport.code}
-            totalDuration={props.totalTime}
-            stops={props.stops}
-            airlineName={props.airline.name}
-            airlineCode={props.airline.code}
+            departureName={props.forwardFlight.departureAirport.name}
+            departureTime={new Date(Date.parse(props.forwardFlight.initialDeparture))}
+            departureCode={props.forwardFlight.departureAirport.code}
+            arrivalName={props.forwardFlight.arrivalAirport.name}
+            arrivalTime={new Date(Date.parse(props.forwardFlight.finalArrival))}
+            arrivalCode={props.forwardFlight.arrivalAirport.code}
+            totalDuration={props.forwardFlight.totalTime}
+            stops={props.forwardFlight.stops}
+            airlineName={props.forwardFlight.airline.name}
+            airlineCode={props.forwardFlight.airline.code}
           />
         </Grid>
         <Grid
@@ -61,8 +63,8 @@ export default function OneWayFlight(props: OneWayFlightProps) {
         >
           <FlightCosts
             currency={props.currency}
-            totalPrice={props.totalPrice}
-            pricePerTraveler={props.pricePerTraveler}
+            totalPrice={props.forwardFlight.totalPrice}
+            pricePerTraveler={props.forwardFlight.pricePerTraveler}
           />
         </Grid>
       </Grid>
