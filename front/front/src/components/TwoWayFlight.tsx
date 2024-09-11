@@ -13,7 +13,6 @@ interface TwoWayFlightProps extends RoundFlightSummary {
 const StyledPaper = styled(Paper)({
   position: "relative",
   overflow: "hidden",
-  padding: 3,
   cursor: "pointer",
 });
 
@@ -33,7 +32,9 @@ export default function TwoWayFlight(props: TwoWayFlightProps) {
   return (
     <StyledPaper
       elevation={5}
+      sx={{ padding: 3 }}
       onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
       onClick={props.onClick}
     >
       <BrightnessOverlay
