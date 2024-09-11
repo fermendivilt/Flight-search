@@ -19,4 +19,4 @@ Flight search app that consumes Amadeus API
 - note: you can run "npm run build" if you want the production build, but the dockerfile already tells the container to do it
 4. Now, from the /back/FlightSearch run:
 - gradle build (this is also necessary for new changes to apply)
-5. You are ready to go! Run "docker-compose up -d --build" and, after some time, you will be able to access the app from the front-end (back has cors :c) at localhost:3000
+5. You are ready to go! Run "docker-compose up -d --build" (or without the flag if not first run and no new changes were made) and, after some time, you will be able to access the app from the front-end (back has cors :c) at localhost:3000
