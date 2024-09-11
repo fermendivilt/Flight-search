@@ -31,6 +31,7 @@ interface Segment {
   duration: string;
   id: string;
   numberOfStops: number;
+  stops: Stop[];
   blacklistedInEU: boolean;
 }
 
@@ -46,6 +47,11 @@ interface Aircraft {
 
 interface Operating {
   carrierCode: string;
+}
+
+interface Stop {
+    iataCode: string;
+    duration: string;
 }
 
 interface Price {
@@ -80,7 +86,7 @@ interface FareDetailsBySegment {
   fareBasis: string;
   brandedFare: string;
   brandedFareLabel: string;
-  class: string;
+  clazz: string; //Java backend 
   includedCheckedBags: IncludedCheckedBags;
   amenities: Amenity[];
 }
@@ -127,4 +133,4 @@ interface SearchResponseDTO {
   dictionaries: Dictionaries;
 }
 
-export type { SearchResponseDTO, FlightOffer, Itinerary, Dictionaries }
+export type { SearchResponseDTO, FlightOffer, Itinerary, Segment, Dictionaries }

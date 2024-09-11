@@ -1,8 +1,11 @@
 import {
   Button,
   Divider,
+  MenuItem,
   Pagination,
   Paper,
+  Select,
+  SelectChangeEvent,
   Skeleton,
   Stack,
 } from "@mui/material";
@@ -19,22 +22,27 @@ import {
   OneWayFlightSummary,
   RoundFlightSummary,
 } from "../types/Flights";
+import { Sortings } from "../literals/Sortings";
+import { SearchResponseDTO } from "../dto/SearchResponseDTO";
 
 interface SearchResultsProps {
   search: SearchDTO;
   backToSearch: () => void;
-  toDetails: () => void;
+  toDetails: (selectedFlight: number) => void;
+  setOriginalFlights: (dto: SearchResponseDTO) => void;
 }
 
 export default function SearchResults({
   search,
   backToSearch,
   toDetails,
+  setOriginalFlights,
 }: SearchResultsProps) {
   const [snackbarMessage, setSnackbarMessage] = useState("");
 
   const oneWayTrip = search.departureDate === search.returnDate;
   const pageSize = oneWayTrip ? 4 : 3;
+  const [sorting, setSorting] = useState<Sortings>("Default");
 
   const fetchFlights = useSearchFlights(search);
   const [flights, setFlights] = useState<
@@ -57,12 +65,13 @@ export default function SearchResults({
 
     if (fetchFlights.response !== undefined) {
       const response = fetchFlights.response;
+      setOriginalFlights(response);
       setTotalFlightsFound(Math.ceil(response.meta.count / 5));
       const createFunc = oneWayTrip
         ? createOneWayFlightSummary
         : createRoundFlightSummary;
-      const toFlightSummary = response.data.map((flightOffer) => {
-        return createFunc(flightOffer, response.dictionaries);
+      const toFlightSummary = response.data.map((flightOffer, index) => {
+        return createFunc(index, flightOffer, response.dictionaries);
       });
       setFlights(toFlightSummary);
     }
@@ -89,22 +98,88 @@ export default function SearchResults({
     setFlightsOnDisplay(results);
   };
 
+  const setOrdering = (sorting: Sortings) => {
+    if (flights === undefined) return;
+
+    const modified = [...flights];
+
+    switch (sorting) {
+      case "PriceAscending":
+        modified.sort(
+          (a, b) =>
+            parseFloat(a.forwardFlight.totalPrice) -
+            parseFloat(b.forwardFlight.totalPrice)
+        );
+        break;
+      case "PriceDescending":
+        modified.sort(
+          (a, b) =>
+            parseFloat(b.forwardFlight.totalPrice) -
+            parseFloat(a.forwardFlight.totalPrice)
+        );
+        break;
+      case "DurationAscending":
+        modified.sort(
+          (a, b) => a.forwardFlight.totalMinutes - b.forwardFlight.totalMinutes
+        );
+        break;
+      case "DurationDescending":
+        modified.sort(
+          (a, b) => b.forwardFlight.totalMinutes - a.forwardFlight.totalMinutes
+        );
+        break;
+      case "Default":
+      default:
+        break;
+    }
+
+    setFlights(modified);
+  };
+
+  // const sortedFlights = useMemo(() => {
+  //   setOrdering(sorting);
+  // }, [sorting]);
+
   useEffect(() => {
     setPage(1);
   }, [flights]);
 
+  useEffect(() => {
+    setOrdering(sorting);
+  }, [sorting]);
+
   return (
     <>
       <Stack divider={<Divider flexItem />} spacing={2} sx={{ paddingY: 2 }}>
-        <Stack direction={"row"}>
+        <Stack
+          direction={"row"}
+          sx={{ alignItems: "end", justifyContent: "space-between" }}
+        >
           <Button variant="outlined" onClick={backToSearch}>
             <ArrowBackIosNew /> Return to search
           </Button>
+          <Select
+            labelId="demo-simple-select-label"
+            id="demo-simple-select"
+            value={sorting}
+            label="Age"
+            onChange={(event: SelectChangeEvent) => {
+              setSorting(event.target.value as Sortings);
+            }}
+          >
+            <MenuItem value={"Default"}>Default</MenuItem>
+            <MenuItem value={"PriceAscending"}>Price ascending</MenuItem>
+            <MenuItem value={"DurationAscending"}>Duration: ascending</MenuItem>
+            <MenuItem value={"PriceDescending"}>Price: descending</MenuItem>
+            <MenuItem value={"DurationDescending"}>
+              Duration: descending
+            </MenuItem>
+          </Select>
         </Stack>
 
         {loadingData &&
-          Array.from({ length: pageSize }).map(() => (
-            <Paper elevation={5} sx={{ padding: 3 }}>
+          Array.from({ length: pageSize }).map((value, key) => (
+            <Paper key={key} elevation={5} sx={{ padding: 3 }}>
               <Skeleton variant="rounded" height={oneWayTrip ? 96 : 190} />
             </Paper>
           ))}
@@ -114,8 +189,12 @@ export default function SearchResults({
           flightsOnDisplay.map((value, key) => (
             <OneWayFlight
               key={key}
-              {...{ currency: search.currency, forwardFlight: value.forwardFlight }}
-              onClick={toDetails}
+              {...{
+                id: value.id,
+                currency: search.currency,
+                forwardFlight: value.forwardFlight,
+              }}
+              onClick={() => toDetails(value.id)}
             />
           ))}
 
@@ -125,11 +204,12 @@ export default function SearchResults({
             <TwoWayFlight
               key={key}
               {...{
+                id: value.id,
                 currency: search.currency,
                 forwardFlight: value.forwardFlight,
                 returnFlight: (value as RoundFlightSummary).returnFlight,
               }}
-              onClick={toDetails}
+              onClick={() => toDetails(value.id)}
             />
           ))}
 

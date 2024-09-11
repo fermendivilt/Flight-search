@@ -10,6 +10,7 @@ import {
   NotNullString,
 } from "./utils/NullUtils";
 import FlightDetails from "./flightDetails/FlightDetails";
+import { FlightOffer, SearchResponseDTO } from "./dto/SearchResponseDTO";
 
 type Page = "search" | "results" | "details";
 
@@ -18,6 +19,10 @@ const clearParams = () => (window.location.search = "");
 function App() {
   const [search, setSearch] = useState<SearchDTO>(EmptySearchDTO());
   const [page, setPage] = useState<Page>("search");
+  const [flights, setFlights] = useState<SearchResponseDTO | undefined>(
+    undefined
+  );
+  const [flight, setFlight] = useState<FlightOffer | undefined>(undefined);
 
   const checkUrlForSearch = (): boolean => {
     const params: URLSearchParams = new URLSearchParams(window.location.search);
@@ -53,8 +58,16 @@ function App() {
     setPage("search");
   };
 
-  const toDetails = () => {
+  const toDetails = (flightId: number) => {
+    if(flights === undefined) return;
+
     setPage("details");
+    setFlight(flights.data[flightId]);
+  };
+
+  const backToResults = () => {
+    setPage("results");
+    setFlight(undefined);
   };
 
   useEffect(() => {
@@ -74,10 +87,16 @@ function App() {
         <SearchResults
           search={search}
           backToSearch={backToSearch}
-          toDetails={toDetails}
+          toDetails={(selectedFlight: number) => toDetails(selectedFlight)}
+          setOriginalFlights={(dto: SearchResponseDTO) => setFlights(dto)}
         />
       )}
-      {page === "details" && <FlightDetails />}
+      {page === "details" &&
+        flight !== undefined &&
+        flights !== undefined &&
+        flights.dictionaries !== undefined && (
+          <FlightDetails flights={flight} dictionary={flights.dictionaries} backToResults={backToResults}/>
+        )}
     </Container>
   );
 }

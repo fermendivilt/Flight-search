@@ -6,6 +6,7 @@ interface RoundFlightSummary extends OneWayFlightSummary {
 }
 
 interface OneWayFlightSummary {
+  id: number;
   forwardFlight: FlightSummary;
 }
 
@@ -16,6 +17,7 @@ interface FlightSummary {
   arrivalAirport: Airport;
   airline: Airline;
   operatingAirline?: Airline;
+  totalMinutes: number;
   totalTime: string;
   stops: Stop[];
   totalPrice: string;
@@ -37,10 +39,12 @@ interface Stop {
 }
 
 function createRoundFlightSummary(
+  id: number,
   flightOffer: FlightOffer,
   dictionaries: Dictionaries
 ): RoundFlightSummary {
   return {
+    id: id,
     forwardFlight: createFlightSummary(
       flightOffer,
       dictionaries,
@@ -55,10 +59,12 @@ function createRoundFlightSummary(
 }
 
 function createOneWayFlightSummary(
+  id: number,
   flightOffer: FlightOffer,
   dictionaries: Dictionaries
 ): OneWayFlightSummary {
   return {
+    id: id,
     forwardFlight: createFlightSummary(flightOffer, dictionaries),
   };
 }
@@ -109,13 +115,15 @@ function createFlightSummary(
       name: dictionaries.locations[segment.departure.iataCode].cityCode,
       code: segment.departure.iataCode,
     },
-    duration: DurationTo12H(segment.duration),
+    duration: DurationTo12H(segment.duration)[1],
   }));
 
   const totalPrice = flightOffer.price.grandTotal;
   const pricePerTraveler = (
     parseFloat(totalPrice) / flightOffer.travelerPricings.length
   ).toFixed(2);
+
+  const duration = DurationTo12H(baseItinerary.duration);
 
   return {
     initialDeparture,
@@ -124,7 +132,8 @@ function createFlightSummary(
     arrivalAirport,
     airline,
     operatingAirline,
-    totalTime: DurationTo12H(baseItinerary.duration),
+    totalMinutes: duration[0],
+    totalTime: duration[1],
     stops,
     totalPrice,
     pricePerTraveler,
@@ -136,6 +145,7 @@ export type {
   OneWayFlightSummary,
   RoundFlightSummary,
   Airline,
+  Airport,
   Stop,
 };
-export { createOneWayFlightSummary, createRoundFlightSummary };
+export { createFlightSummary, createOneWayFlightSummary, createRoundFlightSummary };

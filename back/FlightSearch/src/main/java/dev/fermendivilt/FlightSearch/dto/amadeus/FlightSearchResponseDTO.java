@@ -1,5 +1,7 @@
 package dev.fermendivilt.FlightSearch.dto.amadeus;
 
+import com.google.gson.annotations.SerializedName;
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -134,6 +136,7 @@ public class FlightSearchResponseDTO {
         private String segmentId;
         private String cabin;
         private String fareBasis;
+        @SerializedName("class")
         private String clazz;
         private IncludedCheckedBags includedCheckedBags;
     }

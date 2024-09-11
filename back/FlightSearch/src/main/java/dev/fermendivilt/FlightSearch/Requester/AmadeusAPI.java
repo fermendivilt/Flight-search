@@ -86,6 +86,9 @@ public class AmadeusAPI {
                         element.get("iataCode").getAsString()));
             });
 
+        for (AirportSearchResponseDTO element : result)
+            airportNameFromCode.putIfAbsent(element.getIataCode(), element.getName());
+
         return result;
     }
 
