@@ -9,7 +9,7 @@ import {
   NotNullNumber,
   NotNullString,
 } from "./utils/NullUtils";
-import SearchDetails from "./searchDetails/SearchDetails";
+import FlightDetails from "./flightDetails/FlightDetails";
 
 type Page = "search" | "results" | "details";
 
@@ -77,7 +77,7 @@ function App() {
           toDetails={toDetails}
         />
       )}
-      {page === "details" && <SearchDetails />}
+      {page === "details" && <FlightDetails />}
     </Container>
   );
 }
