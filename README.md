@@ -7,6 +7,7 @@ Flight search app that consumes Amadeus API
 2. Java 22
 3. NPM
 4. Docker desktop (or your preferred way to run containers, but in this case I have it)
+5. A way to bypass your company's VPN (useful when testing locally with Docker)
 
 ## Steps
 1. Pull this repository
