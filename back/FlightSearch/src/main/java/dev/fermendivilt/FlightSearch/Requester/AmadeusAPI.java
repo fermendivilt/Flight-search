@@ -143,6 +143,8 @@ public class AmadeusAPI {
 
         FlightSearchResponseDTO result = gson.fromJson(responseBody, FlightSearchResponseDTO.class);
 
+        if(result.getDictionaries() == null) return result;
+
         var resultLocationReference = result.getDictionaries().getLocations();
 
         for (Map.Entry<String, FlightSearchResponseDTO.Location> entry : resultLocationReference.entrySet()) {
