@@ -21,6 +21,7 @@ import AutocompleteInput, {
   OptionList,
 } from "../components/AutocompleteInput";
 import FastSnackbar from "../components/Snackbar";
+import { useEnvConfigContext } from "../hooks/EnvConfig";
 
 interface SearchProps {
   search: SearchDTO;
@@ -45,6 +46,7 @@ export default function Search({
   moveToResults,
 }: SearchProps) {
   const [snackbarMessage, setSnackbarMessage] = useState("");
+  const appConfig = useEnvConfigContext();
 
   const fetchDepartureAirports = useGetAirports("");
 
@@ -73,7 +75,7 @@ export default function Search({
     value: string,
     setUrl: React.Dispatch<React.SetStateAction<string>>
   ) => {
-    if (new RegExp("^[A-Za-z0-9./:()'\"-]+$").test(value)) setUrl(value);
+    if (new RegExp("^[\u0020A-Za-z0-9./:()'\"-]+$").test(value)) setUrl(value);
   };
 
   function validate(e: FormEvent<HTMLFormElement>) {
@@ -175,12 +177,14 @@ export default function Search({
   ) => {
     const compare =
       new Date(Date.parse(event.target.value)) >
-      new Date(Date.parse(search.returnDate)) ? event.target.value : search.returnDate;
+      new Date(Date.parse(search.returnDate))
+        ? event.target.value
+        : search.returnDate;
     setSearch((prev) => {
       return {
         ...prev,
         departureDate: event.target.value,
-        returnDate: compare
+        returnDate: compare,
       };
     });
   };
@@ -233,6 +237,11 @@ export default function Search({
             <Grid2 size={12}>
               <Typography variant="h3" gutterBottom align="center">
                 Flight Search
+              </Typography>
+              <Typography variant="body2" gutterBottom align="center">
+                {process.env.NODE_ENV !== "production" && (
+                  <>{process.env.NODE_ENV}</>
+                )} v{appConfig.appVersion}
               </Typography>
             </Grid2>
 

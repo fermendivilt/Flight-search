@@ -4,8 +4,7 @@ import { AirportDTO } from "../dto/AirportDTO";
 import { useCallback, useEffect, useState } from "react";
 import debounce from "../utils/Debouncer";
 import { SearchResponseDTO } from "../dto/SearchResponseDTO";
-
-axios.defaults.baseURL = "http://localhost:8080/api";
+import { useEnvConfigContext } from "../hooks/EnvConfig";
 
 interface RequesterProps {
   initialUrl: string;
@@ -35,12 +34,13 @@ const useAxiosWithDebounce = <Data,>({
   const [response, setResponse] = useState<Data | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
+  const appConfig = useEnvConfigContext();
 
   const fetchData = useCallback(
     debounce(async (url: string) => {
       setIsLoading(true);
       setError(undefined);
-      axios[method](initialUrl + url)
+      axios[method](appConfig.backBaseUrl + initialUrl + url)
         .then((res) => {
           setResponse(res.data);
         })
@@ -74,11 +74,12 @@ const useAxios = <Data,>({
   const [response, setResponse] = useState<Data | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
+  const appConfig = useEnvConfigContext();
 
   const fetchData = useCallback(async (url: string) => {
     setIsLoading(true);
     setError(undefined);
-    axios[method](initialUrl + url)
+    axios[method](appConfig.backBaseUrl + initialUrl + url)
       .then((res) => {
         setResponse(res.data);
       })
