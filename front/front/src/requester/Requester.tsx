@@ -50,9 +50,10 @@ const useAxiosWithDebounce = <Data,>({
           setResponse(res.data);
         })
         .catch((err) => {
-          if (err.response)
+        console.log(err)
+        if (err.response)
             setError({
-              message: err.response.status + err.response.data,
+              message: err.response.status + " " + err.response.data.error,
               fromServer: true,
             });
           else
