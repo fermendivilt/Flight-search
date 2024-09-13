@@ -29,7 +29,7 @@ public class FlightController {
     @GetMapping("/airports")
     public ResponseEntity<List<AirportSearchResponseDTO>> searchAirports(
         @RequestParam @NotBlank
-        @Pattern(regexp = "^[A-Za-z0-9./:()'\"-]+$")
+        @Pattern(regexp = "^[ A-Za-z0-9./:()'\"-]+$")
         String keyword) {
         try {
             return ResponseEntity.ok(flightService.getAirports(keyword));
