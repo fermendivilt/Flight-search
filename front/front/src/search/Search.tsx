@@ -73,7 +73,7 @@ export default function Search({
     value: string,
     setUrl: React.Dispatch<React.SetStateAction<string>>
   ) => {
-    if (new RegExp("^[A-Za-z0-9./:()'\"-]+$").test(value)) setUrl(value);
+    if (new RegExp("^[\u0020A-Za-z0-9./:()'\"-]+$").test(value)) setUrl(value);
   };
 
   function validate(e: FormEvent<HTMLFormElement>) {
