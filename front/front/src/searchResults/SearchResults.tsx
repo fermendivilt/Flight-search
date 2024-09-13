@@ -15,7 +15,6 @@ import { useEffect, useState } from "react";
 import { ArrowBackIosNew } from "@mui/icons-material";
 import OneWayFlight from "../components/OneWayFlight";
 import TwoWayFlight from "../components/TwoWayFlight";
-import FastSnackbar from "../components/Snackbar";
 import {
   createOneWayFlightSummary,
   createRoundFlightSummary,
@@ -24,6 +23,7 @@ import {
 } from "../types/Flights";
 import { Sortings } from "../literals/Sortings";
 import { SearchResponseDTO } from "../dto/SearchResponseDTO";
+import { SweetMessage } from "../components/SweetAlert";
 
 interface SearchResultsProps {
   search: SearchDTO;
@@ -38,8 +38,6 @@ export default function SearchResults({
   toDetails,
   setOriginalFlights,
 }: SearchResultsProps) {
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-
   const oneWayTrip = search.departureDate === search.returnDate;
   const pageSize = oneWayTrip ? 4 : 3;
   const [sorting, setSorting] = useState<Sortings>("Default");
@@ -77,7 +75,12 @@ export default function SearchResults({
     }
 
     if (fetchFlights.error !== undefined) {
-      setSnackbarMessage(fetchFlights.error);
+      SweetMessage({
+        title: "Something went wrong...",
+        text: fetchFlights.error,
+        icon: "error",
+        toast: { position: "bottom-left", timerMs: 5000 },
+      });
     }
   }, [fetchFlights.isLoading, fetchFlights.response, fetchFlights.error]);
 
@@ -222,12 +225,6 @@ export default function SearchResults({
           onChange={(_e, page) => setPage(page)}
         />
       </Stack>
-      {snackbarMessage.length > 0 && (
-        <FastSnackbar
-          message={snackbarMessage}
-          onDead={() => setSnackbarMessage("")}
-        />
-      )}
     </>
   );
 }

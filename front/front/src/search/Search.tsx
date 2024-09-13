@@ -20,8 +20,8 @@ import AutocompleteInput, {
   Option,
   OptionList,
 } from "../components/AutocompleteInput";
-import FastSnackbar from "../components/Snackbar";
 import { useEnvConfigContext } from "../hooks/EnvConfig";
+import { SweetMessage } from "../components/SweetAlert";
 
 interface SearchProps {
   search: SearchDTO;
@@ -45,7 +45,6 @@ export default function Search({
   setSearch,
   moveToResults,
 }: SearchProps) {
-  const [snackbarMessage, setSnackbarMessage] = useState("");
   const appConfig = useEnvConfigContext();
 
   const fetchDepartureAirports = useGetAirports("");
@@ -116,7 +115,12 @@ export default function Search({
     }
 
     if (fetchDepartureAirports.error !== undefined) {
-      setSnackbarMessage(fetchDepartureAirports.error);
+      SweetMessage({
+        title: "Something went wrong...",
+        text: fetchDepartureAirports.error,
+        icon: "error",
+        toast: { position: "bottom-left", timerMs: 5000 },
+      });
     }
   }, [
     fetchDepartureAirports.isLoading,
@@ -144,7 +148,12 @@ export default function Search({
     }
 
     if (fetchArrivalAirports.error !== undefined) {
-      setSnackbarMessage(fetchArrivalAirports.error);
+      SweetMessage({
+        title: "Something went wrong...",
+        text: fetchArrivalAirports.error,
+        icon: "error",
+        toast: { position: "bottom-left", timerMs: 5000 },
+      });
     }
   }, [
     fetchArrivalAirports.isLoading,
@@ -241,7 +250,8 @@ export default function Search({
               <Typography variant="body2" gutterBottom align="center">
                 {process.env.NODE_ENV !== "production" && (
                   <>{process.env.NODE_ENV}</>
-                )} v{appConfig.appVersion}
+                )}{" "}
+                v{appConfig.appVersion}
               </Typography>
             </Grid2>
 
@@ -368,12 +378,6 @@ export default function Search({
           </Box>
         </form>
       </Paper>
-      {snackbarMessage.length > 0 && (
-        <FastSnackbar
-          message={snackbarMessage}
-          onDead={() => setSnackbarMessage("")}
-        />
-      )}
     </>
   );
 }
