@@ -5,7 +5,6 @@ import {
   Typography,
 } from "@mui/material";
 import Grid2 from "@mui/material/Grid2";
-import React from "react";
 
 type Option = {
   id: number;
@@ -80,12 +79,12 @@ export default function AutocompleteInput({
                 input: {
                   ...params.InputProps,
                   endAdornment: (
-                    <React.Fragment>
+                    <>
                       {loading ? (
                         <CircularProgress color="inherit" size={20} />
                       ) : null}
                       {params.InputProps.endAdornment}
-                    </React.Fragment>
+                    </>
                   ),
                 },
               }}
