@@ -1,17 +1,22 @@
 import Swal, { SweetAlertPosition, SweetAlertResult } from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 
-interface toast {
+interface Toast {
   position?: SweetAlertPosition;
   timerMs?: number;
+}
+
+interface Confirmation {
+  buttonText?: string;
+  onConfirm: CallableFunction;
 }
 
 interface SweetAlertProps {
   title: string;
   text?: string;
   icon?: "warning" | "error" | "success" | "info" | "question";
-  toast?: toast;
-  onConfirm?: CallableFunction;
+  toast?: Toast;
+  confirm?: Confirmation;
 }
 
 const MySwal = withReactContent(Swal);
@@ -21,17 +26,19 @@ function SweetMessage({
   text,
   icon,
   toast,
-  onConfirm,
+  confirm,
 }: SweetAlertProps) {
   MySwal.fire({
     titleText: title,
     text: text,
     icon: icon,
     toast: toast !== undefined,
-    position: toast?.position ?? undefined,
-    timer: toast?.timerMs ?? undefined,
+    position: toast?.position,
+    timer: toast?.timerMs,
+    showConfirmButton: confirm !== undefined,
+    confirmButtonText: confirm?.buttonText
   }).then((result: SweetAlertResult) => {
-    if (onConfirm !== undefined && result.isConfirmed) onConfirm();
+    if (confirm !== undefined && result.isConfirmed) confirm.onConfirm();
   });
 }
 

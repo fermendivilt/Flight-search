@@ -16,6 +16,21 @@ type Page = "search" | "results" | "details";
 
 const clearParams = () => (window.location.search = "");
 
+const getParams = (params?: URLSearchParams): SearchDTO => {
+  if(params === undefined) 
+    params = new URLSearchParams(window.location.search);
+  
+  return {
+    departureAirport: NotNullString(params.get("departureAirport")),
+    arrivalAirport: NotNullString(params.get("arrivalAirport")),
+    departureDate: NotNullString(params.get("departureDate")),
+    returnDate: NotNullString(params.get("returnDate")),
+    adults: NotNullNumber(params.get("adults")),
+    currency: NotNullString(params.get("currency")),
+    nonStop: NotNullBoolean(params.get("nonStop")),
+  }
+};
+
 function App() {
   const [search, setSearch] = useState<SearchDTO>(EmptySearchDTO());
   const [page, setPage] = useState<Page>("search");
@@ -29,24 +44,16 @@ function App() {
 
     if (params.size !== 7) return false;
 
-    const fromParams: SearchDTO = {
-      departureAirport: NotNullString(params.get("departureAirport")),
-      arrivalAirport: NotNullString(params.get("arrivalAirport")),
-      departureDate: NotNullString(params.get("departureDate")),
-      returnDate: NotNullString(params.get("returnDate")),
-      adults: NotNullNumber(params.get("adults")),
-      currency: NotNullString(params.get("currency")),
-      nonStop: NotNullBoolean(params.get("nonStop")),
-    };
+    const parsedDto = getParams(params);
 
-    if (ValidateSearchDTO(fromParams).hasError) {
+    if (ValidateSearchDTO(parsedDto).hasError) {
       clearParams();
       return false;
     }
 
     setSearch(() => {
       return {
-        ...fromParams,
+        ...parsedDto,
       };
     });
 
@@ -54,6 +61,7 @@ function App() {
   };
 
   const backToSearch = () => {
+    setSearch(getParams())
     clearParams();
     setPage("search");
   };

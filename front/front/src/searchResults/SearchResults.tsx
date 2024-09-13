@@ -64,6 +64,15 @@ export default function SearchResults({
     if (fetchFlights.response !== undefined) {
       const response = fetchFlights.response;
       setOriginalFlights(response);
+
+      if (response.meta.count < 1) {
+        SweetMessage({
+          title: "No flights found for your search parameters.",
+          icon: "info",
+          confirm: { buttonText: "Back to search", onConfirm: backToSearch },
+        });
+      }
+
       setTotalFlightsFound(Math.ceil(response.meta.count / 5));
       const createFunc = oneWayTrip
         ? createOneWayFlightSummary
