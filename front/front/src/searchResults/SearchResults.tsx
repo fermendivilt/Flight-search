@@ -77,8 +77,8 @@ export default function SearchResults({
     if (fetchFlights.error !== undefined) {
       SweetMessage({
         title: "Something went wrong...",
-        text: fetchFlights.error,
-        icon: "error",
+        text: fetchFlights.error.message,
+        icon: fetchFlights.error.fromServer ? "error" : "warning",
         toast: { position: "bottom-left", timerMs: 5000 },
       });
     }

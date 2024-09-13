@@ -117,8 +117,8 @@ export default function Search({
     if (fetchDepartureAirports.error !== undefined) {
       SweetMessage({
         title: "Something went wrong...",
-        text: fetchDepartureAirports.error,
-        icon: "error",
+        text: fetchDepartureAirports.error.message,
+        icon: fetchDepartureAirports.error.fromServer ? "error" : "warning",
         toast: { position: "bottom-left", timerMs: 5000 },
       });
     }
@@ -150,8 +150,8 @@ export default function Search({
     if (fetchArrivalAirports.error !== undefined) {
       SweetMessage({
         title: "Something went wrong...",
-        text: fetchArrivalAirports.error,
-        icon: "error",
+        text: fetchArrivalAirports.error.message,
+        icon: fetchArrivalAirports.error.fromServer ? "error" : "warning",
         toast: { position: "bottom-left", timerMs: 5000 },
       });
     }

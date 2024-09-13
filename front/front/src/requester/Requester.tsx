@@ -17,8 +17,13 @@ interface RequesterProps {
 interface Requester<Data> {
   response: Data | undefined;
   isLoading: boolean;
-  error: string | undefined;
+  error: Error | undefined;
   setUrl: React.Dispatch<React.SetStateAction<string>>;
+}
+
+interface Error {
+  message: string;
+  fromServer: boolean;
 }
 
 type Request = "get";
@@ -33,7 +38,7 @@ const useAxiosWithDebounce = <Data,>({
   const [url, setUrl] = useState("");
   const [response, setResponse] = useState<Data | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | undefined>(undefined);
+  const [error, setError] = useState<Error | undefined>(undefined);
   const appConfig = useEnvConfigContext();
 
   const fetchData = useCallback(
@@ -45,7 +50,16 @@ const useAxiosWithDebounce = <Data,>({
           setResponse(res.data);
         })
         .catch((err) => {
-          setError(err.message);
+          if (err.response)
+            setError({
+              message: err.response.status + err.response.data,
+              fromServer: true,
+            });
+          else
+            setError({
+              message: "Service unavailable, contact administrator.",
+              fromServer: false,
+            });
         })
         .finally(() => {
           setIsLoading(false);
@@ -73,7 +87,7 @@ const useAxios = <Data,>({
   const [url, setUrl] = useState("");
   const [response, setResponse] = useState<Data | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | undefined>(undefined);
+  const [error, setError] = useState<Error | undefined>(undefined);
   const appConfig = useEnvConfigContext();
 
   const fetchData = useCallback(async (url: string) => {
@@ -84,7 +98,16 @@ const useAxios = <Data,>({
         setResponse(res.data);
       })
       .catch((err) => {
-        setError(err.message);
+        if (err.response)
+          setError({
+            message: err.response.status + err.response.data,
+            fromServer: true,
+          });
+        else
+          setError({
+            message: "Service unavailable, contact administrator.",
+            fromServer: false,
+          });
       })
       .finally(() => {
         setIsLoading(false);
