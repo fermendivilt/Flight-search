@@ -119,7 +119,8 @@ export default function Search({
         title: "Something went wrong...",
         text: fetchDepartureAirports.error.message,
         icon: fetchDepartureAirports.error.fromServer ? "error" : "warning",
-        toast: { position: "bottom-left", timerMs: 5000 },
+        position: "bottom-left",
+        toast: { timerMs: 5000 },
       });
     }
   }, [
@@ -152,7 +153,8 @@ export default function Search({
         title: "Something went wrong...",
         text: fetchArrivalAirports.error.message,
         icon: fetchArrivalAirports.error.fromServer ? "error" : "warning",
-        toast: { position: "bottom-left", timerMs: 5000 },
+        position: "bottom-left",
+        toast: { timerMs: 5000 },
       });
     }
   }, [

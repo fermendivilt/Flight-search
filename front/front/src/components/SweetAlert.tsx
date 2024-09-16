@@ -2,7 +2,6 @@ import Swal, { SweetAlertPosition, SweetAlertResult } from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 
 interface Toast {
-  position?: SweetAlertPosition;
   timerMs?: number;
 }
 
@@ -15,6 +14,7 @@ interface SweetAlertProps {
   title: string;
   text?: string;
   icon?: "warning" | "error" | "success" | "info" | "question";
+  position?: SweetAlertPosition;
   toast?: Toast;
   confirm?: Confirmation;
 }
@@ -25,6 +25,7 @@ function SweetMessage({
   title,
   text,
   icon,
+  position,
   toast,
   confirm,
 }: SweetAlertProps) {
@@ -33,7 +34,7 @@ function SweetMessage({
     text: text,
     icon: icon,
     toast: toast !== undefined,
-    position: toast?.position,
+    position: position ?? "center",
     timer: toast?.timerMs,
     showConfirmButton: confirm !== undefined,
     confirmButtonText: confirm?.buttonText

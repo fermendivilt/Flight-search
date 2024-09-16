@@ -88,7 +88,8 @@ export default function SearchResults({
         title: "Something went wrong...",
         text: fetchFlights.error.message,
         icon: fetchFlights.error.fromServer ? "error" : "warning",
-        toast: { position: "bottom-left", timerMs: 5000 },
+        position: "bottom-left",
+        toast: { timerMs: 5000 },
       });
     }
   }, [fetchFlights.isLoading, fetchFlights.response, fetchFlights.error]);
