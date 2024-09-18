@@ -14,17 +14,24 @@ interface FlightDetailsProps {
 export default function FlightDetails({
   flights,
   dictionary,
-  backToResults
+  backToResults,
 }: FlightDetailsProps) {
   return (
-    <Grid container spacing={1} sx={{ paddingY: 2}}>
-      <Grid size={12} sx={{ paddingY: 3 }}>
-
-      <Button variant="outlined" onClick={backToResults}>
+    <Grid container spacing={1} sx={{ height: "100vh", paddingY: 2 }}>
+      <Grid
+        size={12}
+        sx={{ display: "flex", alignItems: "center", paddingY: 1 }}
+      >
+        <Paper sx={{ width: "100%", alignItems: "center", paddingY: 1, paddingX: 2 }}>
+          <Button variant="outlined" onClick={backToResults}>
             <ArrowBackIosNew /> Return to results
           </Button>
+        </Paper>
       </Grid>
-      <Grid size={7}>
+      <Grid
+        size={7}
+        sx={{ maxHeight: "80vh", display: "block", overflowY: "auto" }}
+      >
         {flights.itineraries.map((itinerary, index) => {
           return itinerary.segments.map((segment, subIndex) => (
             <Paper
@@ -90,7 +97,10 @@ export default function FlightDetails({
         })}
       </Grid>
       <Grid size={1} />
-      <Grid size={4}>
+      <Grid
+        size={4}
+        sx={{ maxHeight: "80vh", display: "block", overflowY: "auto" }}
+      >
         <Paper elevation={5} sx={{ padding: 3 }}>
           <Typography variant="body1">Price breakdown</Typography>
           <Stack direction={"row"} sx={{ justifyContent: "space-between" }}>
@@ -113,8 +123,8 @@ export default function FlightDetails({
               )}
             </Typography>
           </Stack>
-          <Paper elevation={2} sx={{ padding: 1}}>
-          <Typography variant="body1">Per traveler</Typography>
+          <Paper elevation={2} sx={{ padding: 1 }}>
+            <Typography variant="body1">Per traveler</Typography>
             <Stack direction={"row"} sx={{ justifyContent: "space-between" }}>
               <Typography variant="body1">Base</Typography>
               <Typography gutterBottom variant="body1">
@@ -175,7 +185,11 @@ const getFareDetailsBySegment = (flights: FlightOffer, segment: Segment) => {
 
 const getFeesFromPrice = (flights: FlightOffer) => {
   if (flights.price.fees.every((x) => parseFloat(x.amount) == 0)) {
-    return <Typography gutterBottom variant="body2">No fees :D</Typography>;
+    return (
+      <Typography gutterBottom variant="body2">
+        No fees :D
+      </Typography>
+    );
   }
 
   flights.price.fees.map((fee, index) => {

@@ -84,7 +84,10 @@ export default function SearchResults({
         title: "Something went wrong...",
         text: fetchFlights.error.message,
         icon: fetchFlights.error.fromServer ? "error" : "warning",
-        confirm: { buttonText: "Try with another search", onConfirm: backToSearch }
+        confirm: {
+          buttonText: "Try with another search",
+          onConfirm: backToSearch,
+        },
       });
     }
   };
@@ -123,7 +126,6 @@ export default function SearchResults({
       results.push(reorderedFlights[index]);
     }
 
-    //setFlightsOnDisplay(results);
     setState((prev) => ({ ...prev, displayedFlights: results }));
   };
 
@@ -174,69 +176,83 @@ export default function SearchResults({
   }, [sorting]);
 
   return (
-    <Stack divider={<Divider flexItem />} spacing={2} sx={{ paddingY: 2 }}>
-      <Stack
-        direction={"row"}
-        sx={{ alignItems: "end", justifyContent: "space-between" }}
-      >
-        <Button variant="outlined" onClick={backToSearch}>
-          <ArrowBackIosNew /> Return to search
-        </Button>
-        <Select
-          labelId="demo-simple-select-label"
-          id="demo-simple-select"
-          value={sorting}
-          label="Age"
-          onChange={(event: SelectChangeEvent) => {
-            setState((prev) => ({
-              ...prev,
-              sorting: event.target.value as Sortings,
-            }));
-          }}
+    <Stack
+      divider={<CustomDivider />}
+      spacing={2}
+      sx={{ maxHeight: "95vh", paddingY: 2 }}
+    >
+      <Paper sx={{ paddingY: 1, paddingX: 2 }}>
+        <Stack
+          direction={"row"}
+          sx={{ alignItems: "center", justifyContent: "space-between" }}
         >
-          <MenuItem value={"Default"}>Default</MenuItem>
-          <MenuItem value={"PriceAscending"}>Price ascending</MenuItem>
-          <MenuItem value={"DurationAscending"}>Duration: ascending</MenuItem>
-          <MenuItem value={"PriceDescending"}>Price: descending</MenuItem>
-          <MenuItem value={"DurationDescending"}>Duration: descending</MenuItem>
-        </Select>
+          <Button variant="outlined" onClick={backToSearch}>
+            <ArrowBackIosNew /> Return to search
+          </Button>
+          <Select
+            labelId="demo-simple-select-label"
+            id="demo-simple-select"
+            value={sorting}
+            label="Age"
+            onChange={(event: SelectChangeEvent) => {
+              setState((prev) => ({
+                ...prev,
+                sorting: event.target.value as Sortings,
+              }));
+            }}
+          >
+            <MenuItem value={"Default"}>Default</MenuItem>
+            <MenuItem value={"PriceAscending"}>Price ascending</MenuItem>
+            <MenuItem value={"DurationAscending"}>Duration: ascending</MenuItem>
+            <MenuItem value={"PriceDescending"}>Price: descending</MenuItem>
+            <MenuItem value={"DurationDescending"}>
+              Duration: descending
+            </MenuItem>
+          </Select>
+        </Stack>
+      </Paper>
+
+      <Stack
+        divider={<CustomDivider />}
+        spacing={2}
+        sx={{ display: "block", overflowY: "auto" }}
+      >
+        {loadingData &&
+          Array.from({ length: pageSize }).map((value, key) => (
+            <Paper key={key} elevation={5} sx={{ padding: 3 }}>
+              <Skeleton variant="rounded" height={oneWayTrip ? 96 : 190} />
+            </Paper>
+          ))}
+
+        {!loadingData &&
+          oneWayTrip &&
+          displayedFlights?.map((value, key) => (
+            <OneWayFlight
+              key={key}
+              {...{
+                id: value.id,
+                currency: search.currency,
+                forwardFlight: value.forwardFlight,
+              }}
+              onClick={() => toDetails(value.id)}
+            />
+          ))}
+
+        {!loadingData &&
+          !oneWayTrip &&
+          displayedFlights?.map((value, key) => (
+            <TwoWayFlight
+              key={key}
+              {...{
+                id: value.id,
+                currency: search.currency,
+                forwardFlight: value.forwardFlight,
+                returnFlight: (value as RoundFlightSummary).returnFlight,
+              }}
+              onClick={() => toDetails(value.id)}
+            />
+          ))}
       </Stack>
-
-      {loadingData &&
-        Array.from({ length: pageSize }).map((value, key) => (
-          <Paper key={key} elevation={5} sx={{ padding: 3 }}>
-            <Skeleton variant="rounded" height={oneWayTrip ? 96 : 190} />
-          </Paper>
-        ))}
-
-      {!loadingData &&
-        oneWayTrip &&
-        displayedFlights?.map((value, key) => (
-          <OneWayFlight
-            key={key}
-            {...{
-              id: value.id,
-              currency: search.currency,
-              forwardFlight: value.forwardFlight,
-            }}
-            onClick={() => toDetails(value.id)}
-          />
-        ))}
-
-      {!loadingData &&
-        !oneWayTrip &&
-        displayedFlights?.map((value, key) => (
-          <TwoWayFlight
-            key={key}
-            {...{
-              id: value.id,
-              currency: search.currency,
-              forwardFlight: value.forwardFlight,
-              returnFlight: (value as RoundFlightSummary).returnFlight,
-            }}
-            onClick={() => toDetails(value.id)}
-          />
-        ))}
 
       <Pagination
         count={Math.ceil((reorderedFlights?.length ?? 0) / 5)}
@@ -248,4 +264,8 @@ export default function SearchResults({
       />
     </Stack>
   );
+}
+
+function CustomDivider() {
+  return <Divider sx={{ borderColor: "white" }} />;
 }
