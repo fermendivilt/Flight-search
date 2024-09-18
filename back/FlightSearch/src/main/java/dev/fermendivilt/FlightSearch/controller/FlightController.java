@@ -46,7 +46,6 @@ public class FlightController {
     }
 
     @GetMapping("/search")
-    //List<SearchResponseDTO>
     public ResponseEntity<FlightSearchResponseDTO> searchFlights(@RequestParam @NotBlank String departureAirport,
                                                                  @RequestParam @NotBlank String arrivalAirport,
                                                                  @RequestParam @NotBlank String departureDate,

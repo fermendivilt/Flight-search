@@ -1,9 +1,6 @@
 package dev.fermendivilt.FlightSearch.Requester;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import dev.fermendivilt.FlightSearch.dto.SearchDTO;
 import dev.fermendivilt.FlightSearch.dto.AirportSearchResponseDTO;
 import dev.fermendivilt.FlightSearch.dto.amadeus.FlightSearchResponseDTO;
@@ -106,9 +103,11 @@ public class AmadeusAPI {
             response = makeRequest(URI.create("https://21cddc1f-4b79-4af6-b653-f13e26c28830.mock.pstmn.io"), true);
         }
 
-        JsonObject element = response.getAsJsonArray("data").get(0).getAsJsonObject();
+        JsonArray element = response.getAsJsonArray("data");
 
-        String result = element.get("name").getAsString();
+        if(element.isEmpty()) return code;
+
+        String result = element.get(0).getAsJsonObject().get("name").getAsString();
 
         airportNameFromCode.put(code, result);
 
@@ -117,7 +116,6 @@ public class AmadeusAPI {
 
 
     public FlightSearchResponseDTO getFlights(SearchDTO dto) throws IOException, InterruptedException, SyncFailedException {
-        //int elementLimit = 10;
         boolean roundTrip = !dto.getDepartureDate().equals(dto.getReturnDate());
 
         UriComponentsBuilder url = UriComponentsBuilder.fromHttpUrl(apiUrl + "v2/shopping/flight-offers")
@@ -127,7 +125,6 @@ public class AmadeusAPI {
             .queryParam("adults", dto.getAdults())
             .queryParam("nonStop", dto.getNonStop())
             .queryParam("currencyCode", dto.getCurrency());
-            //.queryParam("max", elementLimit);
 
         if(roundTrip) url.queryParam("returnDate", dto.getReturnDate());
 
