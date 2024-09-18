@@ -46,7 +46,7 @@ export default function SearchResults({
   originalFlights,
   setOriginalFlights,
 }: SearchResultsProps) {
-  const oneWayTrip = search.departureDate === search.returnDate;
+  const oneWayTrip = search.returnDate.length === 0;
   const pageSize = oneWayTrip ? 4 : 3;
   const fetchFlights = useSearchFlights(search, originalFlights);
 

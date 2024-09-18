@@ -116,7 +116,7 @@ public class AmadeusAPI {
 
 
     public FlightSearchResponseDTO getFlights(SearchDTO dto) throws IOException, InterruptedException, SyncFailedException {
-        boolean roundTrip = !dto.getDepartureDate().equals(dto.getReturnDate());
+        boolean roundTrip = dto.getReturnDate() != null;
 
         UriComponentsBuilder url = UriComponentsBuilder.fromHttpUrl(apiUrl + "v2/shopping/flight-offers")
             .queryParam("originLocationCode", dto.getDepartureAirport())

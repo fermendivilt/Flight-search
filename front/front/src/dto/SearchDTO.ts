@@ -16,7 +16,7 @@ const EmptySearchDTO = (): SearchDTO => {
     departureAirport: "",
     arrivalAirport: "",
     departureDate: TodayDate(),
-    returnDate: TodayDate(),
+    returnDate: '',
     adults: 1,
     currency: "",
     nonStop: false,
@@ -77,7 +77,7 @@ const validateDepartureDate = (dto: SearchDTO): string => {
 };
 const validateArrivalDate = (dto: SearchDTO): string => {
   const required = requiredValidation(dto.returnDate);
-  if (required.length > 0) return required;
+  if (required.length > 0) return "";
 
   const date = new Date(dto.returnDate);
   const departure = new Date(dto.departureDate);
