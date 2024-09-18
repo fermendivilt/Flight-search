@@ -68,7 +68,7 @@ const useAxiosWithDebounce = <Data,>({
         })
         .catch((err) => {
           const message = err.response
-            ? err.response.status + " " + err.response.data.error
+            ? err.response.status + ": " + err.response.data
             : "Service unavailable, contact administrator.";
           const fromServer = err.response ? true : false;
           setState((prev) => ({
@@ -126,8 +126,9 @@ const useAxios = <Data,>({
         setState((prev) => ({ ...prev, response: res.data }));
       })
       .catch((err) => {
+        console.log(err)
         const message = err.response
-          ? err.response.status + " " + err.response.data.error
+          ? err.response.status + " " + err.response.data
           : "Service unavailable, contact administrator.";
         const fromServer = err.response ? true : false;
         setState((prev) => ({

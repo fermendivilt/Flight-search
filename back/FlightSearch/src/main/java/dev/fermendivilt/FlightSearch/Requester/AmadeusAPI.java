@@ -97,11 +97,11 @@ public class AmadeusAPI {
             .build().toUri();
 
         JsonObject response;
-        try {
+//        try {
             response = makeRequest(url);
-        } catch(SyncFailedException _) {
-            response = makeRequest(URI.create("https://21cddc1f-4b79-4af6-b653-f13e26c28830.mock.pstmn.io"), true);
-        }
+//        } catch(SyncFailedException _) {
+//            response = makeRequest(URI.create("https://21cddc1f-4b79-4af6-b653-f13e26c28830.mock.pstmn.io"), true);
+//        }
 
         JsonArray element = response.getAsJsonArray("data");
 
@@ -129,12 +129,12 @@ public class AmadeusAPI {
         if(roundTrip) url.queryParam("returnDate", dto.getReturnDate());
 
         JsonObject responseBody;
-        try {
+//        try {
             responseBody = makeRequest(url.build().toUri());
-        } catch(SyncFailedException _) {
-
-            responseBody = makeRequest(URI.create("https://47e25352-8d0c-49c9-9f0c-bbfe4414cf6f.mock.pstmn.io/flight-offers/roundTrip"), true);
-        }
+//        } catch(SyncFailedException _) {
+//
+//            responseBody = makeRequest(URI.create("https://47e25352-8d0c-49c9-9f0c-bbfe4414cf6f.mock.pstmn.io/flight-offers/roundTrip"), true);
+//        }
 
         Gson gson = new GsonBuilder().create();
 
@@ -168,8 +168,15 @@ public class AmadeusAPI {
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         JsonObject result = JsonParser.parseString(response.body()).getAsJsonObject();
 
-        if(result.get("errors") != null)
-            throw new SyncFailedException("Invalid external error, please contact administrator.");
+        if(result.get("errors") != null){
+            int internalCode = result.getAsJsonArray("errors").get(0).getAsJsonObject()
+                                .get("code").getAsInt();
+
+            if (internalCode == 425)
+                throw new SyncFailedException("This date is in the past for the departure location.");
+            else
+                throw new SyncFailedException("Invalid external error, please contact administrator.");
+        }
 
         return result;
     }

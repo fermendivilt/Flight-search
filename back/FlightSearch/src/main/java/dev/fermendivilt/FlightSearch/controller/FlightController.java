@@ -27,7 +27,7 @@ public class FlightController {
     FlightService flightService;
 
     @GetMapping("/airports")
-    public ResponseEntity<List<AirportSearchResponseDTO>> searchAirports(
+    public ResponseEntity<?> searchAirports(
         @RequestParam @NotBlank
         @Pattern(regexp = "^[ A-Za-z0-9./:()'\"-]+$")
         String keyword) {
@@ -35,7 +35,7 @@ public class FlightController {
             return ResponseEntity.ok(flightService.getAirports(keyword));
 
         } catch (SyncFailedException e) {
-            return ResponseEntity.status(502).build();
+            return ResponseEntity.status(502).body(e.getMessage());
 
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -46,7 +46,7 @@ public class FlightController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<FlightSearchResponseDTO> searchFlights(@RequestParam @NotBlank String departureAirport,
+    public ResponseEntity<?> searchFlights(@RequestParam @NotBlank String departureAirport,
                                                                  @RequestParam @NotBlank String arrivalAirport,
                                                                  @RequestParam @NotBlank String departureDate,
                                                                  @RequestParam @NotBlank String returnDate,
@@ -65,7 +65,7 @@ public class FlightController {
             return ResponseEntity.badRequest().build();
 
         } catch (SyncFailedException e) {
-            return ResponseEntity.status(502).build();
+            return ResponseEntity.status(502).body(e.getMessage());
 
         } catch (IOException e) {
             throw new RuntimeException(e);
