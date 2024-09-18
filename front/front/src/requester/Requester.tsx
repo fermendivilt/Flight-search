@@ -5,10 +5,12 @@ import { useCallback, useEffect, useState } from "react";
 import debounce from "../utils/Debouncer";
 import { SearchResponseDTO } from "../dto/SearchResponseDTO";
 import { useEnvConfigContext } from "../hooks/EnvConfig";
+import { EnvironmentVariables } from "../types/Config";
 
-interface RequesterProps {
+interface RequesterProps<Data> {
   initialUrl: string;
   method: Request;
+  existingData?: Data | undefined;
   debounceTime: number;
   body: string;
   headers: string;
@@ -18,7 +20,7 @@ interface Requester<Data> {
   response: Data | undefined;
   isLoading: boolean;
   error: Error | undefined;
-  setUrl: React.Dispatch<React.SetStateAction<string>>;
+  setUrl: (url: string) => void;
 }
 
 interface Error {
@@ -28,41 +30,54 @@ interface Error {
 
 type Request = "get";
 
+interface UseAxiosState<Data> {
+  url: string;
+  response: Data | undefined;
+  isLoading: boolean;
+  error: Error | undefined;
+  appConfig: EnvironmentVariables;
+}
+
 const useAxiosWithDebounce = <Data,>({
   initialUrl,
   method,
   debounceTime,
   body,
   headers,
-}: RequesterProps): Requester<Data> => {
-  const [url, setUrl] = useState("");
-  const [response, setResponse] = useState<Data | undefined>(undefined);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | undefined>(undefined);
-  const appConfig = useEnvConfigContext();
+}: RequesterProps<Data>): Requester<Data> => {
+  const [state, setState] = useState<UseAxiosState<Data>>({
+    url: "",
+    response: undefined,
+    isLoading: false,
+    error: undefined,
+    appConfig: useEnvConfigContext(),
+  });
+
+  const { url, response, isLoading, error, appConfig } = state;
+
+  const setUrl = (url: string) => {
+    setState((prev) => ({ ...prev, url: url }));
+  };
 
   const fetchData = useCallback(
     debounce(async (url: string) => {
-      setIsLoading(true);
-      setError(undefined);
+      setState((prev) => ({ ...prev, isLoading: true, error: undefined }));
       axios[method](appConfig.backBaseUrl + initialUrl + url)
         .then((res) => {
-          setResponse(res.data);
+          setState((prev) => ({ ...prev, response: res.data }));
         })
         .catch((err) => {
-        if (err.response)
-            setError({
-              message: err.response.status + " " + err.response.data.error,
-              fromServer: true,
-            });
-          else
-            setError({
-              message: "Service unavailable, contact administrator.",
-              fromServer: false,
-            });
+          const message = err.response
+            ? err.response.status + " " + err.response.data.error
+            : "Service unavailable, contact administrator.";
+          const fromServer = err.response ? true : false;
+          setState((prev) => ({
+            ...prev,
+            error: { message: message, fromServer: fromServer },
+          }));
         })
         .finally(() => {
-          setIsLoading(false);
+          setState((prev) => ({ ...prev, isLoading: false }));
         });
     }, debounceTime),
     []
@@ -80,37 +95,48 @@ const useAxiosWithDebounce = <Data,>({
 const useAxios = <Data,>({
   initialUrl,
   method,
+  existingData,
   debounceTime,
   body,
   headers,
-}: RequesterProps): Requester<Data> => {
-  const [url, setUrl] = useState("");
-  const [response, setResponse] = useState<Data | undefined>(undefined);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | undefined>(undefined);
-  const appConfig = useEnvConfigContext();
+}: RequesterProps<Data>): Requester<Data> => {
+  const [state, setState] = useState<UseAxiosState<Data>>({
+    url: "",
+    response: undefined,
+    isLoading: false,
+    error: undefined,
+    appConfig: useEnvConfigContext(),
+  });
+
+  const { url, response, isLoading, error, appConfig } = state;
+
+  const setUrl = (url: string) => {
+    setState((prev) => ({ ...prev, url: url }));
+  };
 
   const fetchData = useCallback(async (url: string) => {
-    setIsLoading(true);
-    setError(undefined);
+    if (existingData !== undefined) {
+      setState((prev) => ({ ...prev, response: existingData }));
+      return;
+    }
+
+    setState((prev) => ({ ...prev, isLoading: true, error: undefined }));
     axios[method](appConfig.backBaseUrl + initialUrl + url)
       .then((res) => {
-        setResponse(res.data);
+        setState((prev) => ({ ...prev, response: res.data }));
       })
       .catch((err) => {
-        if (err.response)
-          setError({
-            message: err.response.status + err.response.data,
-            fromServer: true,
-          });
-        else
-          setError({
-            message: "Service unavailable, contact administrator.",
-            fromServer: false,
-          });
+        const message = err.response
+          ? err.response.status + " " + err.response.data.error
+          : "Service unavailable, contact administrator.";
+        const fromServer = err.response ? true : false;
+        setState((prev) => ({
+          ...prev,
+          error: { message: message, fromServer: fromServer },
+        }));
       })
       .finally(() => {
-        setIsLoading(false);
+        setState((prev) => ({ ...prev, isLoading: false }));
       });
   }, []);
 
@@ -131,7 +157,10 @@ const useGetAirports = (query: string): Requester<AirportDTO> => {
   });
 };
 
-const useSearchFlights = (query: SearchDTO) => {
+const useSearchFlights = (
+  query: SearchDTO,
+  flights: SearchResponseDTO | undefined
+) => {
   const preparedQuery = {
     ...query,
     adults: query.adults.toString(),
@@ -142,10 +171,12 @@ const useSearchFlights = (query: SearchDTO) => {
     initialUrl:
       "/flight/search?" + new URLSearchParams(preparedQuery).toString(),
     method: "get",
+    existingData: flights,
     debounceTime: 0,
     body: "",
     headers: "",
   });
 };
 
+export type { Requester };
 export { useGetAirports, useSearchFlights };

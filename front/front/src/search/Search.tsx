@@ -25,8 +25,14 @@ import { SweetMessage } from "../components/SweetAlert";
 
 interface SearchProps {
   search: SearchDTO;
-  setSearch: React.Dispatch<React.SetStateAction<SearchDTO>>;
+  setSearch: (value: SearchDTO) => void;
   moveToResults: () => void;
+}
+
+interface SearchState {
+  validation: SearchDTOValidation;
+  departureAirports: OptionList;
+  arrivalAirports: OptionList;
 }
 
 const currencyList: Array<Option> = [
@@ -48,31 +54,33 @@ export default function Search({
   const appConfig = useEnvConfigContext();
 
   const fetchDepartureAirports = useGetAirports("");
-
   const fetchArrivalAirports = useGetAirports("");
 
-  const [validation, setValidation] = useState<SearchDTOValidation>({
-    hasError: false,
-    departureAirportError: "",
-    arrivalAirportError: "",
-    departureDateError: "",
-    arrivalDateError: "",
-    adultsError: "",
-    currencyError: "",
+  const [state, setState] = useState<SearchState>({
+    validation: {
+      hasError: false,
+      departureAirportError: "",
+      arrivalAirportError: "",
+      departureDateError: "",
+      arrivalDateError: "",
+      adultsError: "",
+      currencyError: "",
+    },
+    departureAirports: {
+      options: [],
+      getOptionLabel: (option: Option) => option.displayName,
+    },
+    arrivalAirports: {
+      options: [],
+      getOptionLabel: (option: Option) => option.displayName,
+    },
   });
 
-  const [departureAirports, setDepartureAirports] = useState<OptionList>({
-    options: [],
-    getOptionLabel: (option) => option.displayName,
-  });
-  const [arrivalAirports, setArrivalAirports] = useState<OptionList>({
-    options: [],
-    getOptionLabel: (option) => option.displayName,
-  });
+  const { validation, departureAirports, arrivalAirports } = state;
 
   const validateAirportSearch = (
     value: string,
-    setUrl: React.Dispatch<React.SetStateAction<string>>
+    setUrl: (url: string) => void
   ) => {
     if (new RegExp("^[\u0020A-Za-z0-9./:()'\"-]+$").test(value)) setUrl(value);
   };
@@ -82,7 +90,7 @@ export default function Search({
 
     const result = ValidateSearchDTO(search);
 
-    setValidation(result);
+    setState((prev) => ({ ...prev, validation: result }));
 
     if (!result.hasError) {
       const url: URL = new URL(window.location.href);
@@ -100,9 +108,10 @@ export default function Search({
 
     if (fetchDepartureAirports.response !== undefined) {
       const response = fetchDepartureAirports.response;
-      setDepartureAirports((prev) => {
-        return {
-          ...prev,
+      setState((prev) => ({
+        ...prev,
+        departureAirports: {
+          ...prev.departureAirports,
           options: response.map((x, index) => {
             return {
               id: index,
@@ -110,8 +119,8 @@ export default function Search({
               code: x.iataCode,
             };
           }),
-        };
-      });
+        },
+      }));
     }
 
     if (fetchDepartureAirports.error !== undefined) {
@@ -134,9 +143,10 @@ export default function Search({
 
     if (fetchArrivalAirports.response !== undefined) {
       const response = fetchArrivalAirports.response;
-      setArrivalAirports((prev) => {
-        return {
-          ...prev,
+      setState((prev) => ({
+        ...prev,
+        arrivalAirports: {
+          ...prev.arrivalAirports,
           options: response.map((x, index) => {
             return {
               id: index,
@@ -144,8 +154,8 @@ export default function Search({
               code: x.iataCode,
             };
           }),
-        };
-      });
+        },
+      }));
     }
 
     if (fetchArrivalAirports.error !== undefined) {
@@ -166,21 +176,17 @@ export default function Search({
   const handleDepartureAirportChange = (value: Option | null) => {
     if (value == null) return;
 
-    setSearch((prev) => {
-      return {
-        ...prev,
-        departureAirport: value.code,
-      };
+    setSearch({
+      ...search,
+      departureAirport: value.code,
     });
   };
   const handleArrivalAirportChange = (value: Option | null) => {
     if (value == null) return;
 
-    setSearch((prev) => {
-      return {
-        ...prev,
-        arrivalAirport: value.code,
-      };
+    setSearch({
+      ...search,
+      arrivalAirport: value.code,
     });
   };
   const handleDepartureDateChange = (
@@ -191,22 +197,18 @@ export default function Search({
       new Date(Date.parse(search.returnDate))
         ? event.target.value
         : search.returnDate;
-    setSearch((prev) => {
-      return {
-        ...prev,
-        departureDate: event.target.value,
-        returnDate: compare,
-      };
+    setSearch({
+      ...search,
+      departureDate: event.target.value,
+      returnDate: compare,
     });
   };
   const handleArrivalDateChange = (
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    setSearch((prev) => {
-      return {
-        ...prev,
-        returnDate: event.target.value,
-      };
+    setSearch({
+      ...search,
+      returnDate: event.target.value,
     });
   };
   const handleAdultsChange = (
@@ -214,29 +216,23 @@ export default function Search({
   ) => {
     let value: number = Number.parseInt(event.target.value);
 
-    setSearch((prev) => {
-      return {
-        ...prev,
-        adults: value,
-      };
+    setSearch({
+      ...search,
+      adults: value,
     });
   };
   const handleCurrencyChange = (value: Option | null) => {
     if (value == null) return;
 
-    setSearch((prev) => {
-      return {
-        ...prev,
-        currency: value.code,
-      };
+    setSearch({
+      ...search,
+      currency: value.code,
     });
   };
   const handleNonStopChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setSearch((prev) => {
-      return {
-        ...prev,
-        nonStop: event.target.checked,
-      };
+    setSearch({
+      ...search,
+      nonStop: event.target.checked,
     });
   };
 

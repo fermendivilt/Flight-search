@@ -29,38 +29,41 @@ interface SearchResultsProps {
   search: SearchDTO;
   backToSearch: () => void;
   toDetails: (selectedFlight: number) => void;
+  originalFlights: SearchResponseDTO | undefined;
   setOriginalFlights: (dto: SearchResponseDTO) => void;
+}
+
+interface SearchResultsState {
+  sorting: Sortings;
+  reorderedFlights: Array<OneWayFlightSummary | RoundFlightSummary> | undefined;
+  displayedFlights: Array<OneWayFlightSummary | RoundFlightSummary> | undefined;
 }
 
 export default function SearchResults({
   search,
   backToSearch,
   toDetails,
+  originalFlights,
   setOriginalFlights,
 }: SearchResultsProps) {
   const oneWayTrip = search.departureDate === search.returnDate;
   const pageSize = oneWayTrip ? 4 : 3;
-  const [sorting, setSorting] = useState<Sortings>("Default");
+  const fetchFlights = useSearchFlights(search, originalFlights);
 
-  const fetchFlights = useSearchFlights(search);
-  const [flights, setFlights] = useState<
-    Array<OneWayFlightSummary | RoundFlightSummary> | undefined
-  >(undefined);
-  const [flightsOnDisplay, setFlightsOnDisplay] = useState<
-    Array<OneWayFlightSummary | RoundFlightSummary> | undefined
-  >(undefined);
-  const [totalFlightsFound, setTotalFlightsFound] = useState<
-    number | undefined
-  >(undefined);
+  const [state, setState] = useState<SearchResultsState>({
+    sorting: "Default",
+    reorderedFlights: undefined,
+    displayedFlights: undefined,
+  });
+
+  const { sorting, reorderedFlights, displayedFlights } = state;
 
   const loadingData =
-    flights === undefined ||
-    flightsOnDisplay === undefined ||
+    reorderedFlights === undefined ||
+    displayedFlights === undefined ||
     fetchFlights.isLoading;
 
-  useEffect(() => {
-    if (fetchFlights.isLoading) return;
-
+  const setFetchedFlights = () => {
     if (fetchFlights.response !== undefined) {
       const response = fetchFlights.response;
       setOriginalFlights(response);
@@ -73,14 +76,7 @@ export default function SearchResults({
         });
       }
 
-      setTotalFlightsFound(Math.ceil(response.meta.count / 5));
-      const createFunc = oneWayTrip
-        ? createOneWayFlightSummary
-        : createRoundFlightSummary;
-      const toFlightSummary = response.data.map((flightOffer, index) => {
-        return createFunc(index, flightOffer, response.dictionaries);
-      });
-      setFlights(toFlightSummary);
+      setFlightSummaries(response);
     }
 
     if (fetchFlights.error !== undefined) {
@@ -92,29 +88,50 @@ export default function SearchResults({
         toast: { timerMs: 5000 },
       });
     }
+  };
+
+  const setFlightSummaries = (searchResponse: SearchResponseDTO) => {
+    const createFunc = oneWayTrip
+      ? createOneWayFlightSummary
+      : createRoundFlightSummary;
+    const toFlightSummary = searchResponse.data.map((flightOffer, index) => {
+      return createFunc(index, flightOffer, searchResponse.dictionaries);
+    });
+    setState((prev) => ({ ...prev, reorderedFlights: toFlightSummary }));
+  };
+
+  useEffect(() => {
+    if (fetchFlights.isLoading) return;
+
+    if (originalFlights !== undefined) {
+      setFlightSummaries(originalFlights);
+    } else {
+      setFetchedFlights();
+    }
   }, [fetchFlights.isLoading, fetchFlights.response, fetchFlights.error]);
 
   const setPage = (page: number) => {
-    if (flights === undefined) return;
+    if (reorderedFlights === undefined) return;
 
     const results: Array<OneWayFlightSummary | RoundFlightSummary> = [];
     const pageIndex = (page - 1) * pageSize;
 
     for (
       let index = pageIndex;
-      index < pageIndex + pageSize && index < flights.length;
+      index < pageIndex + pageSize && index < reorderedFlights.length;
       index++
     ) {
-      results.push(flights[index]);
+      results.push(reorderedFlights[index]);
     }
 
-    setFlightsOnDisplay(results);
+    //setFlightsOnDisplay(results);
+    setState((prev) => ({ ...prev, displayedFlights: results }));
   };
 
   const setOrdering = (sorting: Sortings) => {
-    if (flights === undefined) return;
+    if (reorderedFlights === undefined) return;
 
-    const modified = [...flights];
+    const modified = [...reorderedFlights];
 
     switch (sorting) {
       case "PriceAscending":
@@ -146,95 +163,90 @@ export default function SearchResults({
         break;
     }
 
-    setFlights(modified);
+    setState((prev) => ({ ...prev, reorderedFlights: modified }));
   };
-
-  // const sortedFlights = useMemo(() => {
-  //   setOrdering(sorting);
-  // }, [sorting]);
 
   useEffect(() => {
     setPage(1);
-  }, [flights]);
+  }, [reorderedFlights]);
 
   useEffect(() => {
     setOrdering(sorting);
   }, [sorting]);
 
   return (
-    <>
-      <Stack divider={<Divider flexItem />} spacing={2} sx={{ paddingY: 2 }}>
-        <Stack
-          direction={"row"}
-          sx={{ alignItems: "end", justifyContent: "space-between" }}
+    <Stack divider={<Divider flexItem />} spacing={2} sx={{ paddingY: 2 }}>
+      <Stack
+        direction={"row"}
+        sx={{ alignItems: "end", justifyContent: "space-between" }}
+      >
+        <Button variant="outlined" onClick={backToSearch}>
+          <ArrowBackIosNew /> Return to search
+        </Button>
+        <Select
+          labelId="demo-simple-select-label"
+          id="demo-simple-select"
+          value={sorting}
+          label="Age"
+          onChange={(event: SelectChangeEvent) => {
+            setState((prev) => ({
+              ...prev,
+              sorting: event.target.value as Sortings,
+            }));
+          }}
         >
-          <Button variant="outlined" onClick={backToSearch}>
-            <ArrowBackIosNew /> Return to search
-          </Button>
-          <Select
-            labelId="demo-simple-select-label"
-            id="demo-simple-select"
-            value={sorting}
-            label="Age"
-            onChange={(event: SelectChangeEvent) => {
-              setSorting(event.target.value as Sortings);
-            }}
-          >
-            <MenuItem value={"Default"}>Default</MenuItem>
-            <MenuItem value={"PriceAscending"}>Price ascending</MenuItem>
-            <MenuItem value={"DurationAscending"}>Duration: ascending</MenuItem>
-            <MenuItem value={"PriceDescending"}>Price: descending</MenuItem>
-            <MenuItem value={"DurationDescending"}>
-              Duration: descending
-            </MenuItem>
-          </Select>
-        </Stack>
-
-        {loadingData &&
-          Array.from({ length: pageSize }).map((value, key) => (
-            <Paper key={key} elevation={5} sx={{ padding: 3 }}>
-              <Skeleton variant="rounded" height={oneWayTrip ? 96 : 190} />
-            </Paper>
-          ))}
-
-        {!loadingData &&
-          oneWayTrip &&
-          flightsOnDisplay.map((value, key) => (
-            <OneWayFlight
-              key={key}
-              {...{
-                id: value.id,
-                currency: search.currency,
-                forwardFlight: value.forwardFlight,
-              }}
-              onClick={() => toDetails(value.id)}
-            />
-          ))}
-
-        {!loadingData &&
-          !oneWayTrip &&
-          flightsOnDisplay.map((value, key) => (
-            <TwoWayFlight
-              key={key}
-              {...{
-                id: value.id,
-                currency: search.currency,
-                forwardFlight: value.forwardFlight,
-                returnFlight: (value as RoundFlightSummary).returnFlight,
-              }}
-              onClick={() => toDetails(value.id)}
-            />
-          ))}
-
-        <Pagination
-          count={totalFlightsFound ?? 0}
-          defaultPage={1}
-          sx={{ display: "flex", justifyContent: "center" }}
-          showFirstButton
-          showLastButton
-          onChange={(_e, page) => setPage(page)}
-        />
+          <MenuItem value={"Default"}>Default</MenuItem>
+          <MenuItem value={"PriceAscending"}>Price ascending</MenuItem>
+          <MenuItem value={"DurationAscending"}>Duration: ascending</MenuItem>
+          <MenuItem value={"PriceDescending"}>Price: descending</MenuItem>
+          <MenuItem value={"DurationDescending"}>Duration: descending</MenuItem>
+        </Select>
       </Stack>
-    </>
+
+      {loadingData &&
+        Array.from({ length: pageSize }).map((value, key) => (
+          <Paper key={key} elevation={5} sx={{ padding: 3 }}>
+            <Skeleton variant="rounded" height={oneWayTrip ? 96 : 190} />
+          </Paper>
+        ))}
+
+      {!loadingData &&
+        oneWayTrip &&
+        displayedFlights?.map((value, key) => (
+          <OneWayFlight
+            key={key}
+            {...{
+              id: value.id,
+              currency: search.currency,
+              forwardFlight: value.forwardFlight,
+            }}
+            onClick={() => toDetails(value.id)}
+          />
+        ))}
+
+      {!loadingData &&
+        !oneWayTrip &&
+        displayedFlights?.map((value, key) => (
+          <TwoWayFlight
+            key={key}
+            {...{
+              id: value.id,
+              currency: search.currency,
+              forwardFlight: value.forwardFlight,
+              returnFlight: (value as RoundFlightSummary).returnFlight,
+            }}
+            onClick={() => toDetails(value.id)}
+          />
+        ))}
+
+      <Pagination
+        count={Math.ceil((reorderedFlights?.length ?? 0) / 5)}
+        defaultPage={1}
+        sx={{ display: "flex", justifyContent: "center" }}
+        showFirstButton
+        showLastButton
+        onChange={(_e, page) => setPage(page)}
+      />
+    </Stack>
   );
 }

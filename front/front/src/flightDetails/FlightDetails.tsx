@@ -16,8 +16,6 @@ export default function FlightDetails({
   dictionary,
   backToResults
 }: FlightDetailsProps) {
-  console.log(flights, dictionary)
-
   return (
     <Grid container spacing={1} sx={{ paddingY: 2}}>
       <Grid size={12} sx={{ paddingY: 3 }}>
