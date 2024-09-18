@@ -82,7 +82,15 @@ export default function Search({
     value: string,
     setUrl: (url: string) => void
   ) => {
-    if (new RegExp("^[\u0020A-Za-z0-9./:()'\"-]+$").test(value)) setUrl(value);
+    if (new RegExp("^[\u0020A-Za-z0-9./:()'\"-]+$").test(value) || value.length === 0) setUrl(value);
+    else
+      SweetMessage({
+        title: "Detected invalid character",
+        text: "Only English letters, numbers and certain characters are valid",
+        icon: "warning",
+        position: "top",
+        toast: { timerMs: 2000 },
+      });
   };
 
   function validate(e: FormEvent<HTMLFormElement>) {
