@@ -31,10 +31,13 @@ interface SearchResultsProps {
   toDetails: (selectedFlight: number) => void;
   originalFlights: SearchResponseDTO | undefined;
   setOriginalFlights: (dto: SearchResponseDTO) => void;
+  sorting: Sortings;
+  setSorting: (sorting: Sortings) => void;
+  searchResultsPage: number;
+  setSearchResultsPage: (page: number) => void;
 }
 
 interface SearchResultsState {
-  sorting: Sortings;
   reorderedFlights: Array<OneWayFlightSummary | RoundFlightSummary> | undefined;
   displayedFlights: Array<OneWayFlightSummary | RoundFlightSummary> | undefined;
 }
@@ -45,18 +48,21 @@ export default function SearchResults({
   toDetails,
   originalFlights,
   setOriginalFlights,
+  sorting,
+  setSorting,
+  searchResultsPage,
+  setSearchResultsPage,
 }: SearchResultsProps) {
   const oneWayTrip = search.returnDate.length === 0;
   const pageSize = oneWayTrip ? 4 : 3;
   const fetchFlights = useSearchFlights(search, originalFlights);
 
   const [state, setState] = useState<SearchResultsState>({
-    sorting: "Default",
     reorderedFlights: undefined,
     displayedFlights: undefined,
   });
 
-  const { sorting, reorderedFlights, displayedFlights } = state;
+  const { reorderedFlights, displayedFlights } = state;
 
   const loadingData =
     reorderedFlights === undefined ||
@@ -168,11 +174,13 @@ export default function SearchResults({
   };
 
   useEffect(() => {
-    setPage(1);
-  }, [reorderedFlights]);
+    setPage(searchResultsPage);
+    console.log(`Reordered page ${searchResultsPage}`);
+  }, [reorderedFlights, searchResultsPage]);
 
   useEffect(() => {
     setOrdering(sorting);
+    console.log(`Sorting ${sorting}`);
   }, [sorting]);
 
   return (
@@ -195,10 +203,7 @@ export default function SearchResults({
             value={sorting}
             label="Age"
             onChange={(event: SelectChangeEvent) => {
-              setState((prev) => ({
-                ...prev,
-                sorting: event.target.value as Sortings,
-              }));
+              setSorting(event.target.value as Sortings);
             }}
           >
             <MenuItem value={"Default"}>Default</MenuItem>
@@ -256,11 +261,11 @@ export default function SearchResults({
 
       <Pagination
         count={Math.ceil((reorderedFlights?.length ?? 0) / 5)}
-        defaultPage={1}
+        defaultPage={searchResultsPage}
         sx={{ display: "flex", justifyContent: "center" }}
         showFirstButton
         showLastButton
-        onChange={(_e, page) => setPage(page)}
+        onChange={(_e, page) => setSearchResultsPage(page)}
       />
     </Stack>
   );

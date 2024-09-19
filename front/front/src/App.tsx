@@ -11,6 +11,7 @@ import {
 } from "./utils/NullUtils";
 import FlightDetails from "./flightDetails/FlightDetails";
 import { FlightOffer, SearchResponseDTO } from "./dto/SearchResponseDTO";
+import { Sortings } from "./literals/Sortings";
 
 type Page = "search" | "results" | "details";
 
@@ -35,6 +36,8 @@ interface AppState {
   search: SearchDTO;
   page: Page;
   flights: SearchResponseDTO | undefined;
+  searchResultsPage: number;
+  sortingResultsPage: Sortings;
   flight: FlightOffer | undefined;
 }
 
@@ -43,10 +46,12 @@ function App() {
     search: EmptySearchDTO(),
     page: "search",
     flights: undefined,
+    searchResultsPage: 1,
+    sortingResultsPage: "Default",
     flight: undefined,
   });
 
-  const { search, page, flights, flight } = state;
+  const { search, page, flights, searchResultsPage, sortingResultsPage, flight } = state;
 
   const setSearch = (value: SearchDTO) => {
     setState((prev) => ({
@@ -85,7 +90,12 @@ function App() {
   };
 
   const backToSearch = () => {
-    setState((prev) => ({ ...prev, flights: undefined, search: getParams(), page: "search" }));
+    setState((prev) => ({
+      ...prev,
+      flights: undefined,
+      search: getParams(),
+      page: "search",
+    }));
     clearParams();
   };
 
@@ -120,6 +130,14 @@ function App() {
           toDetails={(selectedFlight: number) => toDetails(selectedFlight)}
           originalFlights={flights}
           setOriginalFlights={(dto: SearchResponseDTO) => setFlights(dto)}
+          sorting={sortingResultsPage}
+          setSorting={(sorting: Sortings) =>
+            setState((prev) => ({ ...prev, sortingResultsPage: sorting }))
+          }
+          searchResultsPage={searchResultsPage}
+          setSearchResultsPage={(page: number) =>
+            setState((prev) => ({ ...prev, searchResultsPage: page }))
+          }
         />
       )}
       {page === "details" &&
