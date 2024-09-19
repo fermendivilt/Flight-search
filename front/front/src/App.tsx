@@ -70,7 +70,7 @@ function App() {
   const checkUrlForSearch = (): boolean => {
     const params: URLSearchParams = new URLSearchParams(window.location.search);
 
-    if (params.size !== 7) return false;
+    if (params.size < 6 || params.size > 7) return false;
 
     const parsedDto = getParams(params);
 

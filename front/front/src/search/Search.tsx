@@ -82,7 +82,11 @@ export default function Search({
     value: string,
     setUrl: (url: string) => void
   ) => {
-    if (new RegExp("^[\u0020A-Za-z0-9./:()'\"-]+$").test(value) || value.length === 0) setUrl(value);
+    if (
+      new RegExp("^[\u0020A-Za-z0-9./:()'\"-]+$").test(value) ||
+      value.length === 0
+    )
+      setUrl(value);
     else
       SweetMessage({
         title: "Detected invalid character",
@@ -102,9 +106,10 @@ export default function Search({
 
     if (!result.hasError) {
       const url: URL = new URL(window.location.href);
-      Object.entries(search).forEach((pair) =>
-        url.searchParams.set(pair[0], pair[1].toString())
-      );
+      Object.entries(search).forEach((pair) => {
+        if (pair[1].toString().length === 0) return;
+        url.searchParams.set(pair[0], pair[1].toString());
+      });
       window.history.pushState({}, "", url);
 
       moveToResults();
