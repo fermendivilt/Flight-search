@@ -5,10 +5,7 @@ import dev.fermendivilt.FlightSearch.dto.SearchDTO;
 import dev.fermendivilt.FlightSearch.dto.amadeus.FlightSearchResponseDTO;
 import dev.fermendivilt.FlightSearch.enums.Currency;
 import dev.fermendivilt.FlightSearch.service.FlightService;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -50,7 +47,7 @@ public class FlightController {
                                                                  @RequestParam @NotBlank String arrivalAirport,
                                                                  @RequestParam @NotBlank String departureDate,
                                                                  @RequestParam String returnDate,
-                                                                 @RequestParam @Min(1) Integer adults,
+                                                                 @RequestParam @Min(1) @Max(9) Integer adults,
                                                                  @RequestParam @NotNull Currency currency,
                                                                  @RequestParam @NotNull Boolean nonStop) {
         try {
