@@ -16,7 +16,7 @@ const EmptySearchDTO = (): SearchDTO => {
     departureAirport: "",
     arrivalAirport: "",
     departureDate: TodayDate(),
-    returnDate: TodayDate(),
+    returnDate: "",
     adults: 1,
     currency: "",
     nonStop: false,
@@ -77,12 +77,11 @@ const validateDepartureDate = (dto: SearchDTO): string => {
 };
 const validateArrivalDate = (dto: SearchDTO): string => {
   const required = requiredValidation(dto.returnDate);
-  if (required.length > 0) return required;
+  if (required.length > 0) return "";
 
   const date = new Date(dto.returnDate);
   const departure = new Date(dto.departureDate);
-  if (date < departure)
-    return "Arrival cannot be before departure";
+  if (date < departure) return "Arrival cannot be before departure";
 
   return "";
 };
@@ -90,9 +89,14 @@ const validateAdults = (dto: SearchDTO): string => {
   const required = requiredValidation(dto.adults.toString());
   if (required.length > 0) return required;
 
-  if (Number.isNaN(dto.adults)) return "Must be a number";
+  if (
+    Number.isNaN(dto.adults) ||
+    !Number.isInteger(dto.adults) ||
+    dto.adults < 1
+  )
+    return "Must be a valid number";
 
-  if (dto.adults < 1) return "Must be a valid number";
+  if (dto.adults > 9) return "Maximum is 9 adults";
 
   return "";
 };

@@ -30,11 +30,9 @@ public class FlightService {
         return amadeusAPI.getAirports(keyword);
     }
 
-    //List<SearchResponseDTO>
     public FlightSearchResponseDTO searchFlights(SearchDTO dto) throws IOException, InterruptedException, SyncFailedException {
          FlightSearchResponseDTO apiResult = amadeusAPI.getFlights(dto);
 
-        //return new SearchResponseDTO(apiResult);
         return apiResult;
     }
 }

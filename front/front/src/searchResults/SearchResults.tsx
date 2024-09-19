@@ -15,7 +15,6 @@ import { useEffect, useState } from "react";
 import { ArrowBackIosNew } from "@mui/icons-material";
 import OneWayFlight from "../components/OneWayFlight";
 import TwoWayFlight from "../components/TwoWayFlight";
-import FastSnackbar from "../components/Snackbar";
 import {
   createOneWayFlightSummary,
   createRoundFlightSummary,
@@ -24,84 +23,122 @@ import {
 } from "../types/Flights";
 import { Sortings } from "../literals/Sortings";
 import { SearchResponseDTO } from "../dto/SearchResponseDTO";
+import { SweetMessage } from "../components/SweetAlert";
 
 interface SearchResultsProps {
   search: SearchDTO;
   backToSearch: () => void;
   toDetails: (selectedFlight: number) => void;
+  originalFlights: SearchResponseDTO | undefined;
   setOriginalFlights: (dto: SearchResponseDTO) => void;
+  sorting: Sortings;
+  setSorting: (sorting: Sortings) => void;
+  searchResultsPage: number;
+  setSearchResultsPage: (page: number) => void;
+}
+
+interface SearchResultsState {
+  reorderedFlights: Array<OneWayFlightSummary | RoundFlightSummary> | undefined;
+  displayedFlights: Array<OneWayFlightSummary | RoundFlightSummary> | undefined;
 }
 
 export default function SearchResults({
   search,
   backToSearch,
   toDetails,
+  originalFlights,
   setOriginalFlights,
+  sorting,
+  setSorting,
+  searchResultsPage,
+  setSearchResultsPage,
 }: SearchResultsProps) {
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-
-  const oneWayTrip = search.departureDate === search.returnDate;
+  const oneWayTrip = search.returnDate.length === 0;
   const pageSize = oneWayTrip ? 4 : 3;
-  const [sorting, setSorting] = useState<Sortings>("Default");
+  const fetchFlights = useSearchFlights(search, originalFlights);
 
-  const fetchFlights = useSearchFlights(search);
-  const [flights, setFlights] = useState<
-    Array<OneWayFlightSummary | RoundFlightSummary> | undefined
-  >(undefined);
-  const [flightsOnDisplay, setFlightsOnDisplay] = useState<
-    Array<OneWayFlightSummary | RoundFlightSummary> | undefined
-  >(undefined);
-  const [totalFlightsFound, setTotalFlightsFound] = useState<
-    number | undefined
-  >(undefined);
+  const [state, setState] = useState<SearchResultsState>({
+    reorderedFlights: undefined,
+    displayedFlights: undefined,
+  });
+
+  const { reorderedFlights, displayedFlights } = state;
 
   const loadingData =
-    flights === undefined ||
-    flightsOnDisplay === undefined ||
+    reorderedFlights === undefined ||
+    displayedFlights === undefined ||
     fetchFlights.isLoading;
+
+  const setFetchedFlights = () => {
+    if (fetchFlights.response !== undefined) {
+      const response = fetchFlights.response;
+      setOriginalFlights(response);
+
+      if (response.meta.count < 1) {
+        SweetMessage({
+          title: "No flights found for your search parameters.",
+          icon: "info",
+          confirm: { buttonText: "Back to search", onConfirm: backToSearch },
+        });
+      }
+
+      setFlightSummaries(response);
+    }
+
+    if (fetchFlights.error !== undefined) {
+      SweetMessage({
+        title: "Something went wrong...",
+        text: fetchFlights.error.message,
+        icon: fetchFlights.error.fromServer ? "error" : "warning",
+        confirm: {
+          buttonText: "Try with another search",
+          onConfirm: backToSearch,
+        },
+      });
+    }
+  };
+
+  const setFlightSummaries = (searchResponse: SearchResponseDTO) => {
+    const createFunc = oneWayTrip
+      ? createOneWayFlightSummary
+      : createRoundFlightSummary;
+    const toFlightSummary = searchResponse.data.map((flightOffer, index) => {
+      return createFunc(index, flightOffer, searchResponse.dictionaries);
+    });
+    setState((prev) => ({ ...prev, reorderedFlights: toFlightSummary }));
+  };
 
   useEffect(() => {
     if (fetchFlights.isLoading) return;
 
-    if (fetchFlights.response !== undefined) {
-      const response = fetchFlights.response;
-      setOriginalFlights(response);
-      setTotalFlightsFound(Math.ceil(response.meta.count / 5));
-      const createFunc = oneWayTrip
-        ? createOneWayFlightSummary
-        : createRoundFlightSummary;
-      const toFlightSummary = response.data.map((flightOffer, index) => {
-        return createFunc(index, flightOffer, response.dictionaries);
-      });
-      setFlights(toFlightSummary);
-    }
-
-    if (fetchFlights.error !== undefined) {
-      setSnackbarMessage(fetchFlights.error);
+    if (originalFlights !== undefined) {
+      setFlightSummaries(originalFlights);
+    } else {
+      setFetchedFlights();
     }
   }, [fetchFlights.isLoading, fetchFlights.response, fetchFlights.error]);
 
   const setPage = (page: number) => {
-    if (flights === undefined) return;
+    if (reorderedFlights === undefined) return;
 
     const results: Array<OneWayFlightSummary | RoundFlightSummary> = [];
     const pageIndex = (page - 1) * pageSize;
 
     for (
       let index = pageIndex;
-      index < pageIndex + pageSize && index < flights.length;
+      index < pageIndex + pageSize && index < reorderedFlights.length;
       index++
     ) {
-      results.push(flights[index]);
+      results.push(reorderedFlights[index]);
     }
 
-    setFlightsOnDisplay(results);
+    setState((prev) => ({ ...prev, displayedFlights: results }));
   };
 
   const setOrdering = (sorting: Sortings) => {
-    if (flights === undefined) return;
+    if (reorderedFlights === undefined) return;
 
-    const modified = [...flights];
+    const modified = [...reorderedFlights];
 
     switch (sorting) {
       case "PriceAscending":
@@ -133,27 +170,29 @@ export default function SearchResults({
         break;
     }
 
-    setFlights(modified);
+    setState((prev) => ({ ...prev, reorderedFlights: modified }));
   };
 
-  // const sortedFlights = useMemo(() => {
-  //   setOrdering(sorting);
-  // }, [sorting]);
-
   useEffect(() => {
-    setPage(1);
-  }, [flights]);
+    setPage(searchResultsPage);
+    console.log(`Reordered page ${searchResultsPage}`);
+  }, [reorderedFlights, searchResultsPage]);
 
   useEffect(() => {
     setOrdering(sorting);
+    console.log(`Sorting ${sorting}`);
   }, [sorting]);
 
   return (
-    <>
-      <Stack divider={<Divider flexItem />} spacing={2} sx={{ paddingY: 2 }}>
+    <Stack
+      divider={<CustomDivider />}
+      spacing={2}
+      sx={{ maxHeight: "95vh", paddingY: 2 }}
+    >
+      <Paper sx={{ paddingY: 1, paddingX: 2 }}>
         <Stack
           direction={"row"}
-          sx={{ alignItems: "end", justifyContent: "space-between" }}
+          sx={{ alignItems: "center", justifyContent: "space-between" }}
         >
           <Button variant="outlined" onClick={backToSearch}>
             <ArrowBackIosNew /> Return to search
@@ -176,7 +215,13 @@ export default function SearchResults({
             </MenuItem>
           </Select>
         </Stack>
+      </Paper>
 
+      <Stack
+        divider={<CustomDivider />}
+        spacing={2}
+        sx={{ display: "block", overflowY: "auto" }}
+      >
         {loadingData &&
           Array.from({ length: pageSize }).map((value, key) => (
             <Paper key={key} elevation={5} sx={{ padding: 3 }}>
@@ -186,7 +231,7 @@ export default function SearchResults({
 
         {!loadingData &&
           oneWayTrip &&
-          flightsOnDisplay.map((value, key) => (
+          displayedFlights?.map((value, key) => (
             <OneWayFlight
               key={key}
               {...{
@@ -200,7 +245,7 @@ export default function SearchResults({
 
         {!loadingData &&
           !oneWayTrip &&
-          flightsOnDisplay.map((value, key) => (
+          displayedFlights?.map((value, key) => (
             <TwoWayFlight
               key={key}
               {...{
@@ -212,22 +257,20 @@ export default function SearchResults({
               onClick={() => toDetails(value.id)}
             />
           ))}
-
-        <Pagination
-          count={totalFlightsFound ?? 0}
-          defaultPage={1}
-          sx={{ display: "flex", justifyContent: "center" }}
-          showFirstButton
-          showLastButton
-          onChange={(_e, page) => setPage(page)}
-        />
       </Stack>
-      {snackbarMessage.length > 0 && (
-        <FastSnackbar
-          message={snackbarMessage}
-          onDead={() => setSnackbarMessage("")}
-        />
-      )}
-    </>
+
+      <Pagination
+        count={Math.ceil((reorderedFlights?.length ?? 0) / 5)}
+        defaultPage={searchResultsPage}
+        sx={{ display: "flex", justifyContent: "center" }}
+        showFirstButton
+        showLastButton
+        onChange={(_e, page) => setSearchResultsPage(page)}
+      />
+    </Stack>
   );
+}
+
+function CustomDivider() {
+  return <Divider sx={{ borderColor: "white" }} />;
 }

@@ -11,67 +11,107 @@ import {
 } from "./utils/NullUtils";
 import FlightDetails from "./flightDetails/FlightDetails";
 import { FlightOffer, SearchResponseDTO } from "./dto/SearchResponseDTO";
+import { Sortings } from "./literals/Sortings";
 
 type Page = "search" | "results" | "details";
 
 const clearParams = () => (window.location.search = "");
 
+const getParams = (params?: URLSearchParams): SearchDTO => {
+  if (params === undefined)
+    params = new URLSearchParams(window.location.search);
+
+  return {
+    departureAirport: NotNullString(params.get("departureAirport")),
+    arrivalAirport: NotNullString(params.get("arrivalAirport")),
+    departureDate: NotNullString(params.get("departureDate")),
+    returnDate: NotNullString(params.get("returnDate")),
+    adults: NotNullNumber(params.get("adults")),
+    currency: NotNullString(params.get("currency")),
+    nonStop: NotNullBoolean(params.get("nonStop")),
+  };
+};
+
+interface AppState {
+  search: SearchDTO;
+  page: Page;
+  flights: SearchResponseDTO | undefined;
+  searchResultsPage: number;
+  sortingResultsPage: Sortings;
+  flight: FlightOffer | undefined;
+}
+
 function App() {
-  const [search, setSearch] = useState<SearchDTO>(EmptySearchDTO());
-  const [page, setPage] = useState<Page>("search");
-  const [flights, setFlights] = useState<SearchResponseDTO | undefined>(
-    undefined
-  );
-  const [flight, setFlight] = useState<FlightOffer | undefined>(undefined);
+  const [state, setState] = useState<AppState>({
+    search: EmptySearchDTO(),
+    page: "search",
+    flights: undefined,
+    searchResultsPage: 1,
+    sortingResultsPage: "Default",
+    flight: undefined,
+  });
+
+  const { search, page, flights, searchResultsPage, sortingResultsPage, flight } = state;
+
+  const setSearch = (value: SearchDTO) => {
+    setState((prev) => ({
+      ...prev,
+      search: value,
+    }));
+  };
+  const setPage = (value: Page) => {
+    setState((prev) => ({
+      ...prev,
+      page: value,
+    }));
+  };
+  const setFlights = (value: SearchResponseDTO) => {
+    setState((prev) => ({
+      ...prev,
+      flights: value,
+    }));
+  };
 
   const checkUrlForSearch = (): boolean => {
     const params: URLSearchParams = new URLSearchParams(window.location.search);
 
-    if (params.size !== 7) return false;
+    if (params.size < 6 || params.size > 7) return false;
 
-    const fromParams: SearchDTO = {
-      departureAirport: NotNullString(params.get("departureAirport")),
-      arrivalAirport: NotNullString(params.get("arrivalAirport")),
-      departureDate: NotNullString(params.get("departureDate")),
-      returnDate: NotNullString(params.get("returnDate")),
-      adults: NotNullNumber(params.get("adults")),
-      currency: NotNullString(params.get("currency")),
-      nonStop: NotNullBoolean(params.get("nonStop")),
-    };
+    const parsedDto = getParams(params);
 
-    if (ValidateSearchDTO(fromParams).hasError) {
+    if (ValidateSearchDTO(parsedDto).hasError) {
       clearParams();
       return false;
     }
 
-    setSearch(() => {
-      return {
-        ...fromParams,
-      };
-    });
+    setState((prev) => ({ ...prev, search: parsedDto }));
 
     return true;
   };
 
   const backToSearch = () => {
+    setState((prev) => ({
+      ...prev,
+      flights: undefined,
+      search: getParams(),
+      page: "search",
+    }));
     clearParams();
-    setPage("search");
   };
 
   const toDetails = (flightId: number) => {
-    if(flights === undefined) return;
+    if (flights === undefined) return;
 
-    setPage("details");
-    setFlight(flights.data[flightId]);
+    const flight = flights.data[flightId];
+    setState((prev) => ({ ...prev, page: "details", flight: flight }));
   };
 
   const backToResults = () => {
-    setPage("results");
-    setFlight(undefined);
+    setState((prev) => ({ ...prev, page: "results", flight: undefined }));
   };
 
   useEffect(() => {
-    if (checkUrlForSearch()) setPage("results");
+    if (checkUrlForSearch()) setState((prev) => ({ ...prev, page: "results" }));
   }, []);
 
   return (
@@ -88,14 +128,27 @@ function App() {
           search={search}
           backToSearch={backToSearch}
           toDetails={(selectedFlight: number) => toDetails(selectedFlight)}
+          originalFlights={flights}
           setOriginalFlights={(dto: SearchResponseDTO) => setFlights(dto)}
+          sorting={sortingResultsPage}
+          setSorting={(sorting: Sortings) =>
+            setState((prev) => ({ ...prev, sortingResultsPage: sorting }))
+          }
+          searchResultsPage={searchResultsPage}
+          setSearchResultsPage={(page: number) =>
+            setState((prev) => ({ ...prev, searchResultsPage: page }))
+          }
         />
       )}
       {page === "details" &&
         flight !== undefined &&
         flights !== undefined &&
         flights.dictionaries !== undefined && (
-          <FlightDetails flights={flight} dictionary={flights.dictionaries} backToResults={backToResults}/>
+          <FlightDetails
+            flights={flight}
+            dictionary={flights.dictionaries}
+            backToResults={backToResults}
+          />
         )}
     </Container>
   );

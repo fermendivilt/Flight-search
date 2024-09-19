@@ -5,10 +5,7 @@ import dev.fermendivilt.FlightSearch.dto.SearchDTO;
 import dev.fermendivilt.FlightSearch.dto.amadeus.FlightSearchResponseDTO;
 import dev.fermendivilt.FlightSearch.enums.Currency;
 import dev.fermendivilt.FlightSearch.service.FlightService;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +24,7 @@ public class FlightController {
     FlightService flightService;
 
     @GetMapping("/airports")
-    public ResponseEntity<List<AirportSearchResponseDTO>> searchAirports(
+    public ResponseEntity<?> searchAirports(
         @RequestParam @NotBlank
         @Pattern(regexp = "^[ A-Za-z0-9./:()'\"-]+$")
         String keyword) {
@@ -35,7 +32,7 @@ public class FlightController {
             return ResponseEntity.ok(flightService.getAirports(keyword));
 
         } catch (SyncFailedException e) {
-            return ResponseEntity.status(502).build();
+            return ResponseEntity.status(502).body(e.getMessage());
 
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -46,17 +43,16 @@ public class FlightController {
     }
 
     @GetMapping("/search")
-    //List<SearchResponseDTO>
-    public ResponseEntity<FlightSearchResponseDTO> searchFlights(@RequestParam @NotBlank String departureAirport,
+    public ResponseEntity<?> searchFlights(@RequestParam @NotBlank String departureAirport,
                                                                  @RequestParam @NotBlank String arrivalAirport,
                                                                  @RequestParam @NotBlank String departureDate,
-                                                                 @RequestParam @NotBlank String returnDate,
-                                                                 @RequestParam @Min(1) Integer adults,
+                                                                 @RequestParam(defaultValue = "") String returnDate,
+                                                                 @RequestParam @Min(1) @Max(9) Integer adults,
                                                                  @RequestParam @NotNull Currency currency,
                                                                  @RequestParam @NotNull Boolean nonStop) {
         try {
             LocalDate departure = LocalDate.parse(departureDate);
-            LocalDate arrival = LocalDate.parse(returnDate);
+            LocalDate arrival = (!returnDate.isEmpty()) ? LocalDate.parse(returnDate) : null;
             SearchDTO dto = new SearchDTO(departureAirport, arrivalAirport,
                 departure, arrival, adults, currency, nonStop);
 
@@ -66,7 +62,7 @@ public class FlightController {
             return ResponseEntity.badRequest().build();
 
         } catch (SyncFailedException e) {
-            return ResponseEntity.status(502).build();
+            return ResponseEntity.status(502).body(e.getMessage());
 
         } catch (IOException e) {
             throw new RuntimeException(e);

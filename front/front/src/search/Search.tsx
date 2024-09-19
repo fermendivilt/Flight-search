@@ -20,12 +20,19 @@ import AutocompleteInput, {
   Option,
   OptionList,
 } from "../components/AutocompleteInput";
-import FastSnackbar from "../components/Snackbar";
+import { useEnvConfigContext } from "../hooks/EnvConfig";
+import { SweetMessage } from "../components/SweetAlert";
 
 interface SearchProps {
   search: SearchDTO;
-  setSearch: React.Dispatch<React.SetStateAction<SearchDTO>>;
+  setSearch: (value: SearchDTO) => void;
   moveToResults: () => void;
+}
+
+interface SearchState {
+  validation: SearchDTOValidation;
+  departureAirports: OptionList;
+  arrivalAirports: OptionList;
 }
 
 const currencyList: Array<Option> = [
@@ -44,36 +51,50 @@ export default function Search({
   setSearch,
   moveToResults,
 }: SearchProps) {
-  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const appConfig = useEnvConfigContext();
 
   const fetchDepartureAirports = useGetAirports("");
-
   const fetchArrivalAirports = useGetAirports("");
 
-  const [validation, setValidation] = useState<SearchDTOValidation>({
-    hasError: false,
-    departureAirportError: "",
-    arrivalAirportError: "",
-    departureDateError: "",
-    arrivalDateError: "",
-    adultsError: "",
-    currencyError: "",
+  const [state, setState] = useState<SearchState>({
+    validation: {
+      hasError: false,
+      departureAirportError: "",
+      arrivalAirportError: "",
+      departureDateError: "",
+      arrivalDateError: "",
+      adultsError: "",
+      currencyError: "",
+    },
+    departureAirports: {
+      options: [],
+      getOptionLabel: (option: Option) => option.displayName,
+    },
+    arrivalAirports: {
+      options: [],
+      getOptionLabel: (option: Option) => option.displayName,
+    },
   });
 
-  const [departureAirports, setDepartureAirports] = useState<OptionList>({
-    options: [],
-    getOptionLabel: (option) => option.displayName,
-  });
-  const [arrivalAirports, setArrivalAirports] = useState<OptionList>({
-    options: [],
-    getOptionLabel: (option) => option.displayName,
-  });
+  const { validation, departureAirports, arrivalAirports } = state;
 
   const validateAirportSearch = (
     value: string,
-    setUrl: React.Dispatch<React.SetStateAction<string>>
+    setUrl: (url: string) => void
   ) => {
-    if (new RegExp("^[\u0020A-Za-z0-9./:()'\"-]+$").test(value)) setUrl(value);
+    if (
+      new RegExp("^[\u0020A-Za-z0-9./:()'\"-]+$").test(value) ||
+      value.length === 0
+    )
+      setUrl(value);
+    else
+      SweetMessage({
+        title: "Detected invalid character",
+        text: "Only English letters, numbers and certain characters are valid",
+        icon: "warning",
+        position: "top",
+        toast: { timerMs: 2000 },
+      });
   };
 
   function validate(e: FormEvent<HTMLFormElement>) {
@@ -81,13 +102,14 @@ export default function Search({
 
     const result = ValidateSearchDTO(search);
 
-    setValidation(result);
+    setState((prev) => ({ ...prev, validation: result }));
 
     if (!result.hasError) {
       const url: URL = new URL(window.location.href);
-      Object.entries(search).forEach((pair) =>
-        url.searchParams.set(pair[0], pair[1].toString())
-      );
+      Object.entries(search).forEach((pair) => {
+        if (pair[1].toString().length === 0) return;
+        url.searchParams.set(pair[0], pair[1].toString());
+      });
       window.history.pushState({}, "", url);
 
       moveToResults();
@@ -99,9 +121,10 @@ export default function Search({
 
     if (fetchDepartureAirports.response !== undefined) {
       const response = fetchDepartureAirports.response;
-      setDepartureAirports((prev) => {
-        return {
-          ...prev,
+      setState((prev) => ({
+        ...prev,
+        departureAirports: {
+          ...prev.departureAirports,
           options: response.map((x, index) => {
             return {
               id: index,
@@ -109,12 +132,18 @@ export default function Search({
               code: x.iataCode,
             };
           }),
-        };
-      });
+        },
+      }));
     }
 
     if (fetchDepartureAirports.error !== undefined) {
-      setSnackbarMessage(fetchDepartureAirports.error);
+      SweetMessage({
+        title: "Something went wrong...",
+        text: fetchDepartureAirports.error.message,
+        icon: fetchDepartureAirports.error.fromServer ? "error" : "warning",
+        position: "bottom-left",
+        toast: { timerMs: 5000 },
+      });
     }
   }, [
     fetchDepartureAirports.isLoading,
@@ -127,9 +156,10 @@ export default function Search({
 
     if (fetchArrivalAirports.response !== undefined) {
       const response = fetchArrivalAirports.response;
-      setArrivalAirports((prev) => {
-        return {
-          ...prev,
+      setState((prev) => ({
+        ...prev,
+        arrivalAirports: {
+          ...prev.arrivalAirports,
           options: response.map((x, index) => {
             return {
               id: index,
@@ -137,12 +167,18 @@ export default function Search({
               code: x.iataCode,
             };
           }),
-        };
-      });
+        },
+      }));
     }
 
     if (fetchArrivalAirports.error !== undefined) {
-      setSnackbarMessage(fetchArrivalAirports.error);
+      SweetMessage({
+        title: "Something went wrong...",
+        text: fetchArrivalAirports.error.message,
+        icon: fetchArrivalAirports.error.fromServer ? "error" : "warning",
+        position: "bottom-left",
+        toast: { timerMs: 5000 },
+      });
     }
   }, [
     fetchArrivalAirports.isLoading,
@@ -153,21 +189,17 @@ export default function Search({
   const handleDepartureAirportChange = (value: Option | null) => {
     if (value == null) return;
 
-    setSearch((prev) => {
-      return {
-        ...prev,
-        departureAirport: value.code,
-      };
+    setSearch({
+      ...search,
+      departureAirport: value.code,
     });
   };
   const handleArrivalAirportChange = (value: Option | null) => {
     if (value == null) return;
 
-    setSearch((prev) => {
-      return {
-        ...prev,
-        arrivalAirport: value.code,
-      };
+    setSearch({
+      ...search,
+      arrivalAirport: value.code,
     });
   };
   const handleDepartureDateChange = (
@@ -175,23 +207,21 @@ export default function Search({
   ) => {
     const compare =
       new Date(Date.parse(event.target.value)) >
-      new Date(Date.parse(search.returnDate)) ? event.target.value : search.returnDate;
-    setSearch((prev) => {
-      return {
-        ...prev,
-        departureDate: event.target.value,
-        returnDate: compare
-      };
+      new Date(Date.parse(search.returnDate))
+        ? event.target.value
+        : search.returnDate;
+    setSearch({
+      ...search,
+      departureDate: event.target.value,
+      returnDate: compare,
     });
   };
   const handleArrivalDateChange = (
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    setSearch((prev) => {
-      return {
-        ...prev,
-        returnDate: event.target.value,
-      };
+    setSearch({
+      ...search,
+      returnDate: event.target.value,
     });
   };
   const handleAdultsChange = (
@@ -199,29 +229,23 @@ export default function Search({
   ) => {
     let value: number = Number.parseInt(event.target.value);
 
-    setSearch((prev) => {
-      return {
-        ...prev,
-        adults: value,
-      };
+    setSearch({
+      ...search,
+      adults: value,
     });
   };
   const handleCurrencyChange = (value: Option | null) => {
     if (value == null) return;
 
-    setSearch((prev) => {
-      return {
-        ...prev,
-        currency: value.code,
-      };
+    setSearch({
+      ...search,
+      currency: value.code,
     });
   };
   const handleNonStopChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setSearch((prev) => {
-      return {
-        ...prev,
-        nonStop: event.target.checked,
-      };
+    setSearch({
+      ...search,
+      nonStop: event.target.checked,
     });
   };
 
@@ -233,6 +257,12 @@ export default function Search({
             <Grid2 size={12}>
               <Typography variant="h3" gutterBottom align="center">
                 Flight Search
+              </Typography>
+              <Typography variant="body2" gutterBottom align="center">
+                {process.env.NODE_ENV !== "production" && (
+                  <>{process.env.NODE_ENV}</>
+                )}{" "}
+                v{appConfig.appVersion}
               </Typography>
             </Grid2>
 
@@ -359,12 +389,6 @@ export default function Search({
           </Box>
         </form>
       </Paper>
-      {snackbarMessage.length > 0 && (
-        <FastSnackbar
-          message={snackbarMessage}
-          onDead={() => setSnackbarMessage("")}
-        />
-      )}
     </>
   );
 }
